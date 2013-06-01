@@ -127,8 +127,11 @@
       // Array containing WhiteList Words
       // Some predefined words plus the words passed as whiteList array in options
       var whiteList = ["http","https","id","aurora", "xpcom", "hawaii", "src",
-                       "sdk", "string"];
+                       "sdk", "string", "three"];
       whiteList.push.apply(options.whiteList || []);
+      if (whiteList.indexOf(aValue) > -1) {
+        return false;
+      }
       // code to determine if a single word is isGibberish or not
       var numAlpha = 0, // Basically number of non numeric characters
           numNum = 0, // Number of numeric characters
@@ -163,9 +166,6 @@
            (length >= 6 && numNum <= 2 && numVowel > 0 && !isPartGibberish &&
             numAlpha/numVowel < 5 && numAlpha/numVowel > 1.5))) {
        return false;
-      }
-      else if (whiteList.indexOf(aValue.toLowerCase()) >= 0) {
-        return false;
       }
       return true;
     }
