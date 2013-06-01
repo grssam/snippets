@@ -1,6 +1,6 @@
 {
   "name": "remove.js",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Small but powerful string cleanup and reduction library",
   "main": "remove.js",
   "homepage": "https://github.com/scrapmac/snippets/tree/master/remove.js",
@@ -15,12 +15,14 @@
     "string",
     "remove",
     "cleanup",
-    "reduction"
+    "reduction",
+    "redundant",
+    "trim"
   ],
   "author": {
     "name": "Girish Sharma",
     "url": "http://grssam.com"
   },
-  "license": "MPl",
+  "license": "MPL-2.0",
   "readmeFilename": "README.md"
 }
