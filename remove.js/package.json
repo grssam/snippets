@@ -1,0 +1,26 @@
+{
+  "name": "remove.js",
+  "version": "0.1.0",
+  "description": "Small but powerful string cleanup and reduction library",
+  "main": "remove.js",
+  "homepage": "https://github.com/scrapmac/snippets/tree/master/remove.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/scrapmac/snippets.git"
+  },
+  "bugs": {
+    "url": "https://github.com/scrapmac/snippets/issues"
+  },
+  "keywords": [
+    "string",
+    "remove",
+    "cleanup",
+    "reduction"
+  ],
+  "author": {
+    "name": "Girish Sharma",
+    "url": "http://grssam.com"
+  },
+  "license": "MPl",
+  "readmeFilename": "README.md"
+}
