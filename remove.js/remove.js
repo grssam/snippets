@@ -34,16 +34,16 @@
    *        The string from which you want the gibberish parts to be removed.
    * @param [{Object}] aOptions
    *        An object to define certain options. The current available options are:
-   *        - replacement {srtring} The string to use while replacing a completely
+   *        - replacement {String} The string to use while replacing a completely
    *          gibberish string.
-   *        - whiteList {array} An array of words that you want to be treated as
+   *        - whiteList {Array} An array of words that you want to be treated as
    *          non gibberish.
-   *        - COEFF_LENGTH_MIN {decimal} A less than 1 coeffecient which will be
+   *        - COEFF_LENGTH_MIN {Decimal} A less than 1 coeffecient which will be
    *          used to decide if the whole sentence is gibberish in case of small
    *          sentences.
-   *        - COEFF_LENGTH_MAX {decimal} Similar to COEFF_LENGTH_MIN but used in
+   *        - COEFF_LENGTH_MAX {Decimal} Similar to COEFF_LENGTH_MIN but used in
    *          case of long sentences.
-   * @returns {string} The resulant string with gibberish words removed.
+   * @returns {String} The resulant string with gibberish words removed.
    */
   function gibberish(aValue, aOptions) {
     options = aOptions || {
@@ -94,9 +94,9 @@
    * @param {String} aValue
    *        The string from which you want to detect gibberish words.
    * @returns {Boolean|Array} returns three types of objects:
-   *          - {boolean} false for non gibberish sentences.
-   *          - {boolean} true for completely gibberish sentences.
-   *          - {array} Array of indeces of all the gibberish words if a sentence
+   *          - {Boolean} false for non gibberish sentences.
+   *          - {Boolean} true for completely gibberish sentences.
+   *          - {Array} Array of indeces of all the gibberish words if a sentence
    *            is partially gibberish.
    */
   function isGibberish(aValue) {
