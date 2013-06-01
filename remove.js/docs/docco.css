@@ -348,11 +348,11 @@ ul.sections > li > div {
   }
 
   #background {
-    width: 525px;
+    width: 700px;
   }
   ul.sections > li > div.annotation {
-    max-width: 525px;
-    min-width: 525px;
+    max-width: 700px;
+    min-width: 700px;
     padding: 10px 25px 1px 50px;
   }
   ul.sections > li > div.content {

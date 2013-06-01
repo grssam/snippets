@@ -91,22 +91,25 @@ Rhino, and plain browser loading.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
-              <p>Removes gibberish parts from a sentence. If the whole sentence is gibberish,
-it is replaced by the replacement string, if provided.</p>
-<p>@param {String} aValue
-       The string from which you want the gibberish parts to be removed.
-@param [{Object}] aOptions
-       An object to define certain options. The current available options are:
-       - replacement {srtring} The string to use while replacing a completely
-         gibberish string.
-       - whiteList {array} An array of words that you want to be treated as
-         non gibberish.
-       - COEFF_LENGTH_MIN {decimal} A less than 1 coeffecient which will be
-         used to decide if the whole sentence is gibberish in case of small
-         sentences.
-       - COEFF_LENGTH_MAX {decimal} Similar to COEFF_LENGTH_MIN but used in
-         case of long sentences.
-@returns {string} The resulant string with gibberish words removed.</p>
+              <p>Removes gibberish parts from a sentence. If the whole sentence is gibberish, it is replaced by the replacement string, if provided.</p>
+<p><em>List of arguments:</em></p>
+<ol>
+<li><p><code>aValue</code> - <code>String</code> - The string from which you want the gibberish parts to be removed.</p>
+</li>
+<li><p><code>aOptions</code> - <code>Object</code> - <em>Optional</em> - An object to define certain options. The current available options are:</p>
+<ul>
+<li><p><code>replacement</code> - <code>String</code> - The string to use while replacing a completely gibberish string.</p>
+</li>
+<li><p><code>whiteList</code> - <code>Array</code> - An array of words that you want to be treated as non gibberish.</p>
+</li>
+<li><p><code>COEFF_LENGTH_MIN</code> - <code>Decimal</code> - A less than 1 coeffecient which will be used to decide if the whole sentence is gibberish in case of small sentences.</p>
+</li>
+<li><p><code>COEFF_LENGTH_MAX</code> - <code>Decimal</code> - Similar to COEFF_LENGTH_MIN but used in case of long sentences.</p>
+</li>
+</ul>
+</li>
+</ol>
+<p><em>Returns</em>: String - The resulant string with gibberish words removed.</p>
 
             </div>
             
@@ -114,8 +117,7 @@ it is replaced by the replacement string, if provided.</p>
     options = aOptions || {
       replacement : <span class="string">""</span>,
       whiteList : []
-    };
-    <span class="keyword">var</span> partsLength = aValue.split(<span class="regexp">/[ _=]+/g</span>).length,</pre></div></div>
+    };</pre></div></div>
             
         </li>
         
@@ -130,7 +132,7 @@ it is replaced by the replacement string, if provided.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        result = isGibberish(aValue),</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">var</span> partsLength = aValue.split(<span class="regexp">/[ _=]+/g</span>).length,</pre></div></div>
             
         </li>
         
@@ -145,7 +147,7 @@ it is replaced by the replacement string, if provided.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        length = result.length,</pre></div></div>
+            <div class="content"><div class='highlight'><pre>        result = isGibberish(aValue),</pre></div></div>
             
         </li>
         
@@ -160,11 +162,9 @@ it is replaced by the replacement string, if provided.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        COEFF_LENGTH_MIN = options.COEFF_LENGTH_MIN || <span class="number">0.5</span>,
-        COEFF_LENGTH_MAX = options.COEFF_LENGTH_MAX || <span class="number">0.75</span>;
-    <span class="keyword">if</span> (result + <span class="string">""</span> == <span class="string">"true"</span> ||
-        (length &gt;= COEFF_LENGTH_MIN*partsLength &amp;&amp; partsLength &lt; <span class="number">5</span>) ||
-        (length &gt;= COEFF_LENGTH_MAX*partsLength &amp;&amp; partsLength &gt;= <span class="number">5</span>)) {</pre></div></div>
+            <div class="content"><div class='highlight'><pre>        length = result.length,
+        COEFF_LENGTH_MIN = options.COEFF_LENGTH_MIN || <span class="number">0.5</span>,
+        COEFF_LENGTH_MAX = options.COEFF_LENGTH_MAX || <span class="number">0.75</span>;</pre></div></div>
             
         </li>
         
@@ -175,12 +175,14 @@ it is replaced by the replacement string, if provided.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
-              <p>The sentence is too much gibberish, replacing it with replacement string
-if any.</p>
+              <p>The sentence is too much gibberish, replacing it with replacement string if any.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      <span class="keyword">var</span> replacement = options.replacement || <span class="string">""</span>;
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">if</span> (result + <span class="string">""</span> == <span class="string">"true"</span> ||
+        (length &gt;= COEFF_LENGTH_MIN*partsLength &amp;&amp; partsLength &lt; <span class="number">5</span>) ||
+        (length &gt;= COEFF_LENGTH_MAX*partsLength &amp;&amp; partsLength &gt;= <span class="number">5</span>)) {
+      <span class="keyword">var</span> replacement = options.replacement || <span class="string">""</span>;
       <span class="keyword">if</span> (replacement.split(<span class="regexp">/[\/]/g</span>).length &gt; <span class="number">3</span> || !replacement) {
         <span class="keyword">return</span> aValue;
       }</pre></div></div>
@@ -199,14 +201,7 @@ if any.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>      <span class="keyword">return</span> removeRedundantText(replacement);
-    }
-    <span class="keyword">else</span> <span class="keyword">if</span> (result + <span class="string">""</span> != <span class="string">"false"</span> &amp;&amp; result + <span class="string">""</span> != <span class="string">"true"</span> &amp;&amp;
-             ((length &lt; <span class="number">0.6</span>*COEFF_LENGTH_MIN*partsLength ||
-               aValue.indexOf(<span class="string">"="</span>) &lt; <span class="number">0</span> &amp;&amp;
-               length &lt;= COEFF_LENGTH_MIN*partsLength) &amp;&amp;
-              partsLength &lt;= <span class="number">8</span> ||
-              length &lt; <span class="number">0.75</span>*COEFF_LENGTH_MIN*partsLength &amp;&amp;
-              partsLength &gt; <span class="number">8</span>)) {</pre></div></div>
+    }</pre></div></div>
             
         </li>
         
@@ -217,12 +212,18 @@ if any.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-10">&#182;</a>
               </div>
-              <p>Okay, so the sentence is not that gibberish. Removing just the gibberish
-words should do.</p>
+              <p>Okay, so the sentence is not that gibberish. Removing just the gibberish words should do.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      <span class="keyword">return</span> aValue.split(<span class="regexp">/[ _]/g</span>).filter(<span class="function"><span class="keyword">function</span> <span class="params">(part, i)</span> {</span>
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">else</span> <span class="keyword">if</span> (result + <span class="string">""</span> != <span class="string">"false"</span> &amp;&amp; result + <span class="string">""</span> != <span class="string">"true"</span> &amp;&amp;
+             ((length &lt; <span class="number">0.6</span>*COEFF_LENGTH_MIN*partsLength ||
+               aValue.indexOf(<span class="string">"="</span>) &lt; <span class="number">0</span> &amp;&amp;
+               length &lt;= COEFF_LENGTH_MIN*partsLength) &amp;&amp;
+              partsLength &lt;= <span class="number">8</span> ||
+              length &lt; <span class="number">0.75</span>*COEFF_LENGTH_MIN*partsLength &amp;&amp;
+              partsLength &gt; <span class="number">8</span>)) {
+      <span class="keyword">return</span> aValue.split(<span class="regexp">/[ _]/g</span>).filter(<span class="function"><span class="keyword">function</span> <span class="params">(part, i)</span> {</span>
         <span class="keyword">return</span> result.indexOf(i) &lt; <span class="number">0</span>;
       }).join(<span class="string">" "</span>);
     }</pre></div></div>
@@ -254,13 +255,19 @@ words should do.</p>
               </div>
               <p>Detects if the whole sentence is gibberish, or if not, which all words in
 the sentence are.</p>
-<p>@param {String} aValue
-       The string from which you want to detect gibberish words.
-@returns {Boolean|Array} returns three types of objects:
-         - {boolean} false for non gibberish sentences.
-         - {boolean} true for completely gibberish sentences.
-         - {array} Array of indeces of all the gibberish words if a sentence
-           is partially gibberish.</p>
+<p><em>List of arguments:</em></p>
+<ol>
+<li><code>aValue</code> - <code>String</code> - The string from which you want to detect gibberish words.</li>
+</ol>
+<p><em>Returns</em>: <code>Boolean|Array</code> - Returns three types of objects:</p>
+<ul>
+<li><p><code>Boolean</code>: <code>false</code> for non gibberish sentences.</p>
+</li>
+<li><p><code>Boolean</code>: <code>true</code> for completely gibberish sentences.</p>
+</li>
+<li><p><code>Array</code>: Array of indeces of all the gibberish words if a sentence is partially gibberish.</p>
+</li>
+</ul>
 
             </div>
             
@@ -296,8 +303,7 @@ the sentence are.</p>
     }
     <span class="keyword">else</span> <span class="keyword">if</span> (aValue.split(<span class="string">"."</span>).length &gt; <span class="number">1</span> &amp;&amp; aValue.split(<span class="string">"."</span>).length &lt; <span class="number">4</span>) {
       <span class="keyword">return</span> isGibberish(aValue.replace(<span class="string">"."</span>, <span class="string">" "</span>)) == <span class="literal">false</span> ? <span class="literal">false</span> : <span class="literal">true</span>;
-    }
-    <span class="keyword">else</span> {</pre></div></div>
+    }</pre></div></div>
             
         </li>
         
@@ -308,13 +314,12 @@ the sentence are.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-14">&#182;</a>
               </div>
-              <p>Returning false if url type thing encountered</p>
+              <p>code to determine if a single word is isGibberish or not</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      <span class="keyword">if</span> (aValue.indexOf(<span class="string">"/"</span>) &gt;= <span class="number">0</span>) {
-        <span class="keyword">return</span> <span class="literal">false</span>;
-      }</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">else</span> {
+      <span class="keyword">if</span> (aValue.indexOf(<span class="string">"/"</span>) &gt;= <span class="number">0</span>) {</pre></div></div>
             
         </li>
         
@@ -324,6 +329,22 @@ the sentence are.</p>
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>Returning false if url type thing encountered</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="keyword">return</span> <span class="literal">false</span>;
+      }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
               </div>
               <p>Array containing WhiteList Words
 Some predefined words plus the words passed as whiteList array in options</p>
@@ -340,19 +361,47 @@ Some predefined words plus the words passed as whiteList array in options</p>
         </li>
         
         
-        <li id="section-16">
+        <li id="section-17">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-16">&#182;</a>
+                <a class="pilcrow" href="#section-17">&#182;</a>
               </div>
-              <p>code to determine if a single word is isGibberish or not</p>
+              <p>Basically number of non numeric characters</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      <span class="keyword">var</span> numAlpha = <span class="number">0</span>, <span class="comment">// Basically number of non numeric characters</span>
-          numNum = <span class="number">0</span>, <span class="comment">// Number of numeric characters</span>
-          numVowel = <span class="number">0</span>, <span class="comment">// Number of vowels ('y' included)</span>
+            <div class="content"><div class='highlight'><pre>      <span class="keyword">var</span> numAlpha = <span class="number">0</span>,</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>Number of numeric characters</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>          numNum = <span class="number">0</span>,</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>Number of vowels (&#39;y&#39; included)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>          numVowel = <span class="number">0</span>,
           isPartGibberish = <span class="literal">false</span>;
       aValue = aValue.toLowerCase();
       <span class="keyword">var</span> length = aValue.length;
@@ -372,11 +421,11 @@ Some predefined words plus the words passed as whiteList array in options</p>
         </li>
         
         
-        <li id="section-17">
+        <li id="section-20">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-17">&#182;</a>
+                <a class="pilcrow" href="#section-20">&#182;</a>
               </div>
               <p>Sometimes, the ratio of number of vowels and number of consonants is
 okay, still the words is gibberish due to cases like:
@@ -404,22 +453,23 @@ aabbbbbbbb. Basically jampacked consonants. Checking that here.</p>
         </li>
         
         
-        <li id="section-18">
+        <li id="section-21">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-18">&#182;</a>
+                <a class="pilcrow" href="#section-21">&#182;</a>
               </div>
               <p>Detects any redundant characters from starting and end of an sentence and
 removes them. Optionally a base string can be provided to tell what words
 should be considered redundant.</p>
-<p>@param {String} aVal
-       The string from which you want to detect and remove redundant words.
-@param [{Array}] aBase
-       Array of strings which are hypothetically preceeding aVal in a
-       sentence and thus, the words from this array will be considered as
-       repeating if they appear in aVal.
-@returns {String} The string with redundant words removed.</p>
+<p><em>List of arguments:</em></p>
+<ol>
+<li><p><code>aVal</code> - <code>String</code> - The string from which you want to detect and remove redundant words.</p>
+</li>
+<li><p><code>aBase</code> - <code>Array</code> <em>Optional</em> - Array of strings which are hypothetically preceeding aVal in a sentence and thus, the words from this array will be considered as repeating if they appear in aVal.</p>
+</li>
+</ol>
+<p><em>Returns</em>: <code>String</code> - The string with redundant words removed.</p>
 
             </div>
             
@@ -434,11 +484,11 @@ should be considered redundant.</p>
         </li>
         
         
-        <li id="section-19">
+        <li id="section-22">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-19">&#182;</a>
+                <a class="pilcrow" href="#section-22">&#182;</a>
               </div>
               <p>Checking if the word mactches the previous, next or next to next word.</p>
 
@@ -453,11 +503,11 @@ should be considered redundant.</p>
         </li>
         
         
-        <li id="section-20">
+        <li id="section-23">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-20">&#182;</a>
+                <a class="pilcrow" href="#section-23">&#182;</a>
               </div>
               <p>Checking if the word is in the base strings.</p>
 
@@ -489,24 +539,25 @@ should be considered redundant.</p>
       <span class="keyword">else</span> {
         i++;
       }
-    }</pre></div></div>
+    }
+
+    len = aVal.length;
+    i = <span class="number">0</span>;</pre></div></div>
             
         </li>
         
         
-        <li id="section-21">
+        <li id="section-24">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-21">&#182;</a>
+                <a class="pilcrow" href="#section-24">&#182;</a>
               </div>
               <p>Loop to reduce ending extra words like A , The , : , - etc</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    len = aVal.length;
-    i = <span class="number">0</span>;
-    <span class="keyword">while</span> (i &lt; len) {
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">while</span> (i &lt; len) {
       aVal[i] = aVal[i].replace(<span class="regexp">/[^a-zA-Z0-9\u0400-\u04FF\u0500-\u052F]+$/</span>, <span class="string">''</span>)
                        .replace(<span class="regexp">/^[^a-zA-Z0-9\u0400-\u04FF\u0500-\u052F]+/</span>, <span class="string">''</span>);
       <span class="keyword">if</span> (((i == <span class="number">0</span> || i == len - <span class="number">1</span>) &amp;&amp;
@@ -526,22 +577,24 @@ should be considered redundant.</p>
         </li>
         
         
-        <li id="section-22">
+        <li id="section-25">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-22">&#182;</a>
+                <a class="pilcrow" href="#section-25">&#182;</a>
               </div>
               <p>Shortens the sentence somewhat intelligently. Tries to retain words in whole
 form as much as possible and adds the … at around the middle of the sentence.</p>
-<p>@param {String} trimVal
-       The string which you want to shorten.
-@param {Number} limit
-       The number of characters you want in the final string.
-@param [{Boolean}] start
-       true if the sentence contains only one word, do you want it to be
-       trimmed from start, false otherwise.
-@returns {String} The shortened string.</p>
+<p><em>List of arguments:</em></p>
+<ol>
+<li><p><code>trimVal</code> - <code>String</code> -The string which you want to shorten.</p>
+</li>
+<li><p><code>limit</code> - <code>Number</code> - The number of characters you want in the final string.</p>
+</li>
+<li><p><code>start</code> - <code>Boolean</code> <em>Optional</em> - <code>true</code> if the sentence contains only one word, do you want it to be trimmed from start, <code>false</code> otherwise.</p>
+</li>
+</ol>
+<p><em>Returns</em>: <code>String</code> - The shortened string.</p>
 
             </div>
             
@@ -587,11 +640,11 @@ form as much as possible and adds the … at around the middle of the sentence.<
         </li>
         
         
-        <li id="section-23">
+        <li id="section-26">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-23">&#182;</a>
+                <a class="pilcrow" href="#section-26">&#182;</a>
               </div>
               <p>Checking whether the rest of the words (except first) sum up big</p>
 
@@ -611,11 +664,11 @@ form as much as possible and adds the … at around the middle of the sentence.<
         </li>
         
         
-        <li id="section-24">
+        <li id="section-27">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-24">&#182;</a>
+                <a class="pilcrow" href="#section-27">&#182;</a>
               </div>
               <p>Now adding the remaining words till limit is completed</p>
 
@@ -650,53 +703,53 @@ form as much as possible and adds the … at around the middle of the sentence.<
 
   <span class="keyword">if</span> (<span class="keyword">typeof</span> $ !== <span class="string">"undefined"</span> &amp;&amp; !!$.fn) {
     $.fn.rG = $.fn.removeGibberish = <span class="keyword">function</span>(options) {
-      <span class="keyword">var</span> opts = $.extend({
-        whiteList: [],  <span class="comment">// Array of strings which you feel should not be</span></pre></div></div>
+      <span class="keyword">var</span> opts = $.extend({</pre></div></div>
             
         </li>
         
         
-        <li id="section-25">
+        <li id="section-28">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-25">&#182;</a>
+                <a class="pilcrow" href="#section-28">&#182;</a>
               </div>
-              <p>considered gibberish ever.</p>
+              <p>Array of strings which you feel should not be considered gibberish ever.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        COEFF_LENGTH_MIN: <span class="number">0.5</span>, <span class="comment">// Coefficient when the number of words in the</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>        whiteList: [],</pre></div></div>
             
         </li>
         
         
-        <li id="section-26">
+        <li id="section-29">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-26">&#182;</a>
+                <a class="pilcrow" href="#section-29">&#182;</a>
               </div>
-              <p>string are less than 5</p>
+              <p>Coefficient when the number of words in the string are less than 5</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        COEFF_LENGTH_MAX: <span class="number">0.75</span> <span class="comment">// Coefficient when the number of words in the</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>        COEFF_LENGTH_MIN: <span class="number">0.5</span>,</pre></div></div>
             
         </li>
         
         
-        <li id="section-27">
+        <li id="section-30">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-27">&#182;</a>
+                <a class="pilcrow" href="#section-30">&#182;</a>
               </div>
-              <p>string are greater than equal to 5</p>
+              <p>Coefficient when the number of words in the string are greater than equal to 5</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      }, options);
+            <div class="content"><div class='highlight'><pre>        COEFF_LENGTH_MAX: <span class="number">0.75</span>
+      }, options);
       <span class="keyword">return</span> $(<span class="keyword">this</span>).map(<span class="keyword">function</span>() {
         <span class="keyword">return</span> gibberish(<span class="keyword">this</span>, opts);
       });
