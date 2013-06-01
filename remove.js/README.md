@@ -57,7 +57,7 @@ Here's how to convert the above mentioned example into jQuery syntax:
 
 The `remove.js` file is around 14 KB, but the minified is only 3.75 KB and the gzipped minified is even smaller (1.64 KB).
 
-All the methods are documented inline and a nice docco view can be found here
+All the methods are documented inline and a nice docco view can be found [here](http://scrapmac.github.io/snippets/remove.js/docs/remove.html)
 
 Certain Limitations:
 
