@@ -23,26 +23,52 @@
   }
 }(this, function (exports) {
 
+  // Global object to store the options.
   var options = {};
-  // Function to use isGibberish and remove redundant text
+
+  /**
+   * Removes gibberish parts from a sentence. If the whole sentence is gibberish,
+   * it is replaced by the replacement string, if provided.
+   *
+   * @param {String} aValue
+   *        The string from which you want the gibberish parts to be removed.
+   * @param [{Object}] aOptions
+   *        An object to define certain options. The current available options are:
+   *        - replacement {srtring} The string to use while replacing a completely
+   *          gibberish string.
+   *        - whiteList {array} An array of words that you want to be treated as
+   *          non gibberish.
+   *        - COEFF_LENGTH_MIN {decimal} A less than 1 coeffecient which will be
+   *          used to decide if the whole sentence is gibberish in case of small
+   *          sentences.
+   *        - COEFF_LENGTH_MAX {decimal} Similar to COEFF_LENGTH_MIN but used in
+   *          case of long sentences.
+   * @returns {string} The resulant string with gibberish words removed.
+   */
   function gibberish(aValue, aOptions) {
     options = aOptions || {
-      comparison : "",
+      replacement : "",
       whiteList : []
     };
     var partsLength = aValue.split(/[ _=]+/g).length,
+        // splitting on possible word separaters
         result = isGibberish(aValue),
+        // Getting whether the sentence is gibberish or not.
         length = result.length,
+        // Number of gibberish words if the sentence is not partially gibberish
         COEFF_LENGTH_MIN = options.COEFF_LENGTH_MIN || 0.5,
         COEFF_LENGTH_MAX = options.COEFF_LENGTH_MAX || 0.75;
     if (result + "" == "true" ||
         (length >= COEFF_LENGTH_MIN*partsLength && partsLength < 5) ||
         (length >= COEFF_LENGTH_MAX*partsLength && partsLength >= 5)) {
-      var comparison = options.comparison || "";
-      if (comparison.split(/[\/]/g).length > 3) {
+      // The sentence is too much gibberish, replacing it with replacement string
+      // if any.
+      var replacement = options.replacement || "";
+      if (replacement.split(/[\/]/g).length > 3 || !replacement) {
         return aValue;
       }
-      return removeRedundantText(aValue, comparison.split(/[\/]/g));
+      // Try to remove redandunt words before returning the replacement string.
+      return removeRedundantText(replacement);
     }
     else if (result + "" != "false" && result + "" != "true" &&
              ((length < 0.6*COEFF_LENGTH_MIN*partsLength ||
@@ -51,18 +77,29 @@
               partsLength <= 8 ||
               length < 0.75*COEFF_LENGTH_MIN*partsLength &&
               partsLength > 8)) {
+      // Okay, so the sentence is not that gibberish. Removing just the gibberish
+      // words should do.
       return aValue.split(/[ _]/g).filter(function (part, i) {
         return result.indexOf(i) < 0;
       }).join(" ");
     }
+    // The sentence is completely fine. Return as is.
     return aValue;
   }
 
-  // Function to detect isGibberish words or words containing gibberish part
+  /**
+   * Detects if the whole sentence is gibberish, or if not, which all words in
+   * the sentence are.
+   *
+   * @param {String} aValue
+   *        The string from which you want to detect gibberish words.
+   * @returns {Boolean|Array} returns three types of objects:
+   *          - {boolean} false for non gibberish sentences.
+   *          - {boolean} true for completely gibberish sentences.
+   *          - {array} Array of indeces of all the gibberish words if a sentence
+   *            is partially gibberish.
+   */
   function isGibberish(aValue) {
-    // Returns false for non gibberish word, but for partial gibberish words
-    // returns the output as an array of each gibberish word's index
-    // Returns true/false for single words
     var parts = aValue.split(/[ _]/g),
         partLength = parts.length;
     if (partLength > 1) {
@@ -88,14 +125,14 @@
         return false;
       }
       // Array containing WhiteList Words
-      // Populate it regularily
+      // Some predefined words plus the words passed as whiteList array in options
       var whiteList = ["http","https","id","aurora", "xpcom", "hawaii", "src",
                        "sdk", "string"];
-      whiteList.push.apply(options.whiteList);
+      whiteList.push.apply(options.whiteList || []);
       // code to determine if a single word is isGibberish or not
-      var numAlpha = 0, // Basically non numeric characters
-          numNum = 0,
-          numVowel = 0,
+      var numAlpha = 0, // Basically number of non numeric characters
+          numNum = 0, // Number of numeric characters
+          numVowel = 0, // Number of vowels ('y' included)
           isPartGibberish = false;
       aValue = aValue.toLowerCase();
       var length = aValue.length;
@@ -111,6 +148,9 @@
       }
       numVowel = aValue.split(/[aeiouyаеёиоуыэюяAЕЁИОУЫЭЮЯ]/).length - 1;
       if (numVowel > 1) {
+        // Sometimes, the ratio of number of vowels and number of consonants is
+        // okay, still the words is gibberish due to cases like:
+        // aabbbbbbbb. Basically jampacked consonants. Checking that here.
         aValue.split(/[aeiouyаеёиоуыэюяAЕЁИОУЫЭЮЯ]/).some(function(item) {
           if (isGibberish(item)) {
             isPartGibberish = true;
@@ -131,19 +171,33 @@
     }
   }
 
-  // Function to remove redundant text from String as per Title
-  function removeRedundantText(aGib, aBase) {
-    aGib = aGib.split(/\s+/);
+  /**
+   * Detects any redundant characters from starting and end of an sentence and
+   * removes them. Optionally a base string can be provided to tell what words
+   * should be considered redundant.
+   *
+   * @param {String} aVal
+   *        The string from which you want to detect and remove redundant words.
+   * @param [{Array}] aBase
+   *        Array of strings which are hypothetically preceeding aVal in a
+   *        sentence and thus, the words from this array will be considered as
+   *        repeating if they appear in aVal.
+   * @returns {String} The string with redundant words removed.
+   */
+  function removeRedundantText(aVal, aBase) {
+    aVal = aVal.split(/\s+/);
     aBase = (aBase || []).filter(function(redVal) {
       return redVal.length > 3 || redVal.match(/[0-9]+/);
     });
     var i = 0, len, baseLen = aBase.length;
     function isBM(base) {
-      if (base == aGib[i + 1] || base == aGib[i + 2]) {
+      // Checking if the word mactches the previous, next or next to next word.
+      if (base == aVal[i - 1] || base == aVal[i + 1] || base == aVal[i + 2]) {
         return true;
       }
       base = base.toLowerCase()
                  .replace(/[^0-9a-zA-Z\u0400-\u04FF\u0500-\u052F]+/g, "");
+      // Checking if the word is in the base strings.
       for (var j = 0; j < baseLen; j++) {
         try {
           if (base.search(aBase[j]) >= 0 || aBase[j].search(base) >=0) {
@@ -160,12 +214,12 @@
     });
 
     i = 0;
-    var length = aGib.length;
+    var length = aVal.length;
     while (i < length) {
-      if (isBM(aGib[i]) &&  (i < 2 || i > Math.max(length - 3, 0.75*length))) {
-        aGib.splice(i, 1);
+      if (isBM(aVal[i]) &&  (i < 2 || i > Math.max(length - 3, 0.75*length))) {
+        aVal.splice(i, 1);
         i = 0;
-        length = aGib.length;
+        length = aVal.length;
       }
       else {
         i++;
@@ -173,26 +227,38 @@
     }
 
     // Loop to reduce ending extra words like A , The , : , - etc
-    len = aGib.length;
+    len = aVal.length;
     i = 0;
     while (i < len) {
-      aGib[i] = aGib[i].replace(/[^a-zA-Z0-9\u0400-\u04FF\u0500-\u052F]+$/, '')
+      aVal[i] = aVal[i].replace(/[^a-zA-Z0-9\u0400-\u04FF\u0500-\u052F]+$/, '')
                        .replace(/^[^a-zA-Z0-9\u0400-\u04FF\u0500-\u052F]+/, '');
       if (((i == 0 || i == len - 1) &&
-           aGib[i].search(/^[^a-zA-Z0-9\u0400-\u04FF\u0500-\u052F]+$/) >= 0) ||
-          (i == len - 1 && aGib[i].search(/^(the|a|an|for)$/i) >= 0)) {
-        aGib.splice(i, 1);
+           aVal[i].search(/^[^a-zA-Z0-9\u0400-\u04FF\u0500-\u052F]+$/) >= 0) ||
+          (i == len - 1 && aVal[i].search(/^(the|a|an|for)$/i) >= 0)) {
+        aVal.splice(i, 1);
         i = Math.max(i - 2, 0);
-        len = aGib.length;
+        len = aVal.length;
       }
       else {
         i++;
       }
     }
-    return aGib.filter(function(v) {return v.length}).join(" ");
+    return aVal.filter(function(v) {return v.length}).join(" ");
   }
 
-  // function to trim the word and add … in the middle
+  /**
+   * Shortens the sentence somewhat intelligently. Tries to retain words in whole
+   * form as much as possible and adds the … at around the middle of the sentence.
+   *
+   * @param {String} trimVal
+   *        The string which you want to shorten.
+   * @param {Number} limit
+   *        The number of characters you want in the final string.
+   * @param [{Boolean}] start
+   *        true if the sentence contains only one word, do you want it to be
+   *        trimmed from start, false otherwise.
+   * @returns {String} The shortened string.
+   */
   function trimWord(trimVal, limit, start) {
     if (trimVal == null) {
       return null;
@@ -285,9 +351,9 @@
       });
     };
 
-    $.fn.rR = $.fn.removeRedundant = function(comparison) {
+    $.fn.rR = $.fn.removeRedundant = function(replacement) {
       return $(this).map(function() {
-        return removeRedundantText(this, comparison || []);
+        return removeRedundantText(this, replacement || []);
       });
     };
 
