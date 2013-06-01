@@ -17,25 +17,25 @@ The `remove.js` file contains the whole library.
 ### Node
 
 You can try to require it in node.
-
-    var remove = require('remove');
-    var string = "bmgbberish This is This is a chkgbbr nice day day";
-    string = remove.gibberish(string) // returns "This is This is a nice day day"
-    string = remove.redundant(string) // returns "This is a nice day"
-    string = remove.characters(string, 10) // returns "This … day"
-
+```javascript
+var remove = require('remove');
+var string = "bmgbberish This is This is a chkgbbr nice day day";
+string = remove.gibberish(string) // returns "This is This is a nice day day"
+string = remove.redundant(string) // returns "This is a nice day"
+string = remove.characters(string, 10) // returns "This … day"
+```
 ### Browser
 
 To use it in browser, simply include the file `remove.js` in your html
-
-    <script src="remove.js"></script>
-
+```html
+<script src="remove.js"></script>
+```
 ... and use it like
-
-    var string = "bmgbberish This is This is a chkgbbr nice day day";
-    string = remove.gibberish(string) // returns "This is This is a nice day day"
-    // and so on.
-
+```javascript
+var string = "bmgbberish This is This is a chkgbbr nice day day";
+string = remove.gibberish(string) // returns "This is This is a nice day day"
+// and so on.
+```
 ### jQuery
 
 `remove.js` also works with jQuery. If jQuery is found on the page where you have included the file, then it registers the following custom methods:
@@ -48,11 +48,12 @@ All of the methods are chainable (like any other jquery method)
 
 Here's how to convert the above mentioned example into jQuery syntax:
 
-    var strings = $(["bmgbberish This is This is a chkgbbr nice day day"]);
-    strings = strings.removeRedundant().removeGibberish().removeCharacters(10);
-    // too much typing ? try this:
-    strings = strings.rR().rG().rC(10)[0]; // returns "This … day"
-
+```javascript
+var strings = $(["bmgbberish This is This is a chkgbbr nice day day"]);
+strings = strings.removeRedundant().removeGibberish().removeCharacters(10);
+// too much typing ? try this:
+strings = strings.rR().rG().rC(10)[0]; // returns "This … day"
+```
 ## State of the project
 
 The `remove.js` file is around 14 KB, but the minified is only 3.75 KB and the gzipped minified is even smaller (1.64 KB).
