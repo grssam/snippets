@@ -55,7 +55,7 @@ Here's how to convert the above mentioned example into jQuery syntax:
 
 ## State of the project
 
-The `remove.js` file is around 14 KB, but the minified is only ~4 KB and the gzipped minified is even smaller (1.62 KB).
+The `remove.js` file is around 14 KB, but the minified is only 3.75 KB and the gzipped minified is even smaller (1.64 KB).
 
 All the methods are documented inline and a nice docco view can be found here
 
