@@ -16,7 +16,12 @@ The `remove.js` file contains the whole library.
 
 ### Node
 
-You can try to require it in node.
+You can use `npm` to install remove.js. Just do:
+
+    npm install remove.js
+
+Then use it like:
+
 ```javascript
 var remove = require('remove');
 var string = "bmgbberish This is This is a chkgbbr nice day day";
