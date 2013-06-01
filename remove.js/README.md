@@ -64,6 +64,6 @@ Certain Limitations:
 - The redundant detection logic is not that great. It can be improved a lot.
 - The same goes for gibberish detection logic. But in this case, improving it further is really challenging.
 
-*Hacked by Girish Sharma. Taken from Location Bar Enhancer and further enhanced*.
+*Hacked by Girish Sharma. Taken from [Location Bar Enhancer](https://github.com/scrapmac/UIEnhancer) and further enhanced*.
 
 This work is licensed under the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, you can obtain one at http://mozilla.org/MPL/2.0/.
