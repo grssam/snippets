@@ -110,7 +110,6 @@ var Popup = function Popup(aDocument, aOptions) {
     document.querySelector("head").appendChild(css);
   }
 
-  var isFF = navigator.userAgent.indexOf("Gecko") > 0;
   // A trick to write formatted CSS without any inturruption.
   // Using /*! to prevent this comment from getting removed after minifying.
   var styles = function() {/*!
@@ -130,9 +129,9 @@ var Popup = function Popup(aDocument, aOptions) {
 #selectorsPopup label {
   color: grey;
   display: inline-block;
+  display: flex;
   width: calc(100% - 10px);
   padding: 0px 4px;
-  float: left;
   border: 1px solid transparent;
   font-family: %FONT%;
 }
@@ -152,10 +151,9 @@ var Popup = function Popup(aDocument, aOptions) {
 #selectorsPopup label.count:after {
   color: #000;
   content: attr(data-count);
-  display: inline-table;
   float: right;
-  width: 0;
-  %FFHACK%
+  flex: 1 1 auto;
+  text-align: right;
 }
 #selectorsPopup input {
   opacity: 0;
@@ -177,8 +175,7 @@ var Popup = function Popup(aDocument, aOptions) {
   color: #000;
 }
 */}.toString().split("/*")[1].split("*/")[0].slice(1)
-   .replace("%FONT%", aOptions.font || "")
-   .replace("%FFHACK%", isFF ? "margin: -18px 0 0 0": "");
+   .replace("%FONT%", aOptions.font || "");
 
   if (css.styleSheet) {
     css.styleSheet.cssText = styles;
