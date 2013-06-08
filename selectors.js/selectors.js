@@ -148,16 +148,12 @@ var Popup = function Popup(aDocument, aOptions) {
   content: attr(data-pre);
   display: inline-block;
 }
-#selectorsPopup label.count {
-  padding: 0 20px 0 4px !important;
-}
 #selectorsPopup label.count:after {
   color: #000;
   content: attr(data-count);
-  display: inline-block;
+  display: inline-table;
   float: right;
   width: 0;
-  margin: 0 10px 0 -10px;
 }
 #selectorsPopup input {
   opacity: 0;
@@ -397,7 +393,7 @@ Popup.prototype = {
     var str = this._cachedString;
     var label = aItem.label.slice((aItem.preLabel || "").length);
     str += "<input type='radio' name='autocomplete-radios' value='" + label +
-           "' id='" + label + "'><pre><label";
+           "'><pre><label";
     var cls = "";
     if (aItem.preLabel) {
       str += " data-pre='" + aItem.preLabel + "'";
@@ -745,7 +741,7 @@ SelectorSearch.prototype = {
         this.showSuggestions();
       }
       this.searchBox.classList.remove("devtools-no-search-result");
-      this.callback(this._searchResults[0]);
+      this.callback && this.callback(this._searchResults[0]);
     }
     else {
       if (query.match(/[\s>+]$/)) {
