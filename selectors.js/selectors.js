@@ -110,6 +110,7 @@ var Popup = function Popup(aDocument, aOptions) {
     document.querySelector("head").appendChild(css);
   }
 
+  var isFF = navigator.userAgent.indexOf("Gecko") > 0;
   // A trick to write formatted CSS without any inturruption.
   // Using /*! to prevent this comment from getting removed after minifying.
   var styles = function() {/*!
@@ -154,6 +155,7 @@ var Popup = function Popup(aDocument, aOptions) {
   display: inline-table;
   float: right;
   width: 0;
+  %FFHACK%
 }
 #selectorsPopup input {
   opacity: 0;
@@ -175,7 +177,8 @@ var Popup = function Popup(aDocument, aOptions) {
   color: #000;
 }
 */}.toString().split("/*")[1].split("*/")[0].slice(1)
-   .replace("%FONT%", aOptions.font || "");
+   .replace("%FONT%", aOptions.font || "")
+   .replace("%FFHACK%", isFF ? "margin: -18px 0 0 0": "");
 
   if (css.styleSheet) {
     css.styleSheet.cssText = styles;
@@ -206,7 +209,7 @@ Popup.prototype = {
    * @param x {Number} The x coordinate of the top left point of the input box.
    * @param y {Number} The y coordinate of the top left point of the input box.
    */
-  openPopup: function P_openPopup(x, y) {
+  openPopup: function(x, y) {
     this.panel.style.display = "block";
     // If position is above, the (x, y) point will be the bottom left point of
     // the popup, unless there is not enough space to show the popup above.
@@ -232,7 +235,7 @@ Popup.prototype = {
   /**
    * Hide the autocomplete popup panel.
    */
-  hidePopup: function P_hidePopup() {
+  hidePopup: function() {
     this._open = false;
     this.panel.style.display = "none";
   },
@@ -240,14 +243,14 @@ Popup.prototype = {
   /**
    * Check if the autocomplete popup is open.
    */
-  isOpen: function P_isOpen() {
+  isOpen: function() {
     return this._open;
   },
 
   /**
    * Destroy the object instance.
    */
-  destroy: function P_destroy() {
+  destroy: function() {
     if (this.isOpen()) {
       this.hidePopup();
     }
@@ -272,7 +275,7 @@ Popup.prototype = {
    *
    * @return {Object} The autocomplete item at index aIndex.
    */
-  getItemAtIndex: function P_getItemAtIndex(aIndex) {
+  getItemAtIndex: function(aIndex) {
     return this.values[aIndex];
   },
 
@@ -281,7 +284,7 @@ Popup.prototype = {
    *
    * @return {Array} The array of autocomplete items.
    */
-  getItems: function P_getItems() {
+  getItems: function() {
     return this.values;
   },
 
@@ -291,7 +294,7 @@ Popup.prototype = {
    * @param {Array} aItems
    *        The list of items you want displayed in the popup list.
    */
-  setItems: function P_setItems(aItems) {
+  setItems: function(aItems) {
     this.clearItems();
     aItems.forEach(this.appendItem, this);
 
@@ -307,7 +310,7 @@ Popup.prototype = {
    * item closes to the input element, which means that 0th index if position is
    * below, and last index if position is above.
    */
-  selectFirstItem: function P_selectFirstItem() {
+  selectFirstItem: function() {
     if (this.position.indexOf("above") > -1) {
       this.panel.childNodes[(this.selectedIndex = this.values.length - 1)*2].checked = true;
     }
@@ -322,7 +325,7 @@ Popup.prototype = {
    *
    * @private
    */
-  _onKeypress: function P__onKeypress(aEvent) {
+  _onKeypress: function(aEvent) {
     for (var i = 0; i < this.values.length; i++) {
       if (this.panel.childNodes[i*2].checked) {
         this.selectedIndex = i;
@@ -340,7 +343,7 @@ Popup.prototype = {
    *
    * @private
    */
-  _onClick: function P__onClick(aEvent) {
+  _onClick: function(aEvent) {
     for (var i = 0; i < this.values.length; i++) {
       if (this.panel.childNodes[i*2 + 1].firstChild == aEvent.target) {
         this.selectedIndex = i;
@@ -355,7 +358,7 @@ Popup.prototype = {
   /**
    * Clears all the items from the autocomplete list.
    */
-  clearItems: function P_clearItems() {
+  clearItems: function() {
     this.panel.innerHTML = "";
     this.selectedIndex = -1;
     this._cachedString = "";
@@ -369,7 +372,7 @@ Popup.prototype = {
    *
    * @return {Object} The object corresponding to the selected item.
    */
-  getSelectedItem: function P_getSelectedItem() {
+  getSelectedItem: function() {
     return this.values[this.selectedIndex];
   },
 
@@ -389,7 +392,7 @@ Popup.prototype = {
    *        - count {Number} [Optional] The number to represent the count of
    *                autocompleted label.
    */
-  appendItem: function P_appendItem(aItem) {
+  appendItem: function(aItem) {
     var str = this._cachedString;
     var label = aItem.label.slice((aItem.preLabel || "").length);
     str += "<input type='radio' name='autocomplete-radios' value='" + label +
@@ -417,7 +420,7 @@ Popup.prototype = {
    *
    * @private
    */
-  _flushItems: function P__flushItems() {
+  _flushItems: function() {
     this.panel.innerHTML = this._cachedString;
   },
 
@@ -433,7 +436,7 @@ Popup.prototype = {
    *         The nsIDOMNode that belongs to the given item object. This node is
    *         the label element.
    */
-  _findListItem: function P__findListItem(aItem) {
+  _findListItem: function(aItem) {
     var toReturn = null;
     this.values.some(function (item, i) {
       var found = true;
@@ -456,7 +459,7 @@ Popup.prototype = {
    * @param {Object} aItem
    *        The item you want removed.
    */
-  removeItem: function P_removeItem(aItem) {
+  removeItem: function(aItem) {
     var item = this._findListItem(aItem);
     item && this.panel.removeChild(item.nextSibling) && this.panel.removeChild(item);
   },
@@ -466,7 +469,7 @@ Popup.prototype = {
    *
    * @returns {Number} The number of items in the popup
    */
-  itemCount: function P_itemCount() {
+  itemCount: function() {
     return this.values.length;
   },
 
@@ -475,7 +478,7 @@ Popup.prototype = {
    *
    * @return {Object} The newly selected item object.
    */
-  selectNextItem: function P_selectNextItem() {
+  selectNextItem: function() {
     if (this.selectedIndex < (this.itemCount() - 1)) {
       this.selectedIndex++;
     }
@@ -491,7 +494,7 @@ Popup.prototype = {
    *
    * @return {Object} The newly selected item object.
    */
-  selectPreviousItem: function P_selectPreviousItem() {
+  selectPreviousItem: function() {
     if (this.selectedIndex > 0) {
       this.selectedIndex--;
     }
