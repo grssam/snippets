@@ -24,6 +24,19 @@
   }
 }(this, function (exports) {
 
+// IE fix for not having addEventListener and removeEventListener
+if (!window.addEventListener) {
+  window.addEventListener = function (type, listener, useCapture) {
+    attachEvent('on' + type, function() { listener(event) });
+  }
+}
+
+if (!window.removeEventListener) {
+  window.removeEventListener = function (type, listener, useCapture) {
+    detachEvent('on' + type, function() { listener(event) });
+  }
+}
+
 // Maximum number of selector suggestions shown in the panel.
 var MAX_SUGGESTIONS = 15,
 // Maximum allowed width of the popup.
@@ -702,7 +715,6 @@ SelectorSearch.prototype = {
     if (query.length == 0) {
       this._lastValidSearch = "";
       this.searchBox.removeAttribute("filled");
-      this.searchBox.classList.remove("devtools-no-search-result");
       if (this.searchPopup.isOpen()) {
         this.searchPopup.hidePopup();
       }
@@ -744,7 +756,6 @@ SelectorSearch.prototype = {
       else {
         this.showSuggestions();
       }
-      this.searchBox.classList.remove("devtools-no-search-result");
       this.callback && this.callback(this._searchResults[0]);
     }
     else {
@@ -755,7 +766,6 @@ SelectorSearch.prototype = {
         var lastPart = query.match(/[\s+>][\.#a-zA-Z][^>\s+]*$/)[0];
         this._lastValidSearch = query.slice(0, -1 * lastPart.length + 1) + "*";
       }
-      this.searchBox.classList.add("devtools-no-search-result");
       this.showSuggestions();
     }
   },
@@ -972,18 +982,19 @@ SelectorSearch.prototype = {
         tags: {}
       };
 
-      var nodes = [], node, len, className, len2;
+      var nodes = [], node, len, className, len2, classes;
       try {
         nodes = this.doc.querySelectorAll(this._lastValidSearch);
       } catch (ex) {}
       len = nodes.length;
       for (var i = 0; i < len; i++) {
         node = nodes[i];
-        len2 = node.classList.length;
+        classes = node.classList || node.className.split(" ").filter(function(item) {return item.length;});
+        len2 = classes.length;
         this._searchSuggestions.ids[node.id] = 1;
         this._searchSuggestions.tags[node.tagName] = (this._searchSuggestions.tags[node.tagName] || 0) + 1;
         for (var j = 0; j < len2; j++) {
-          className = node.classList[j];
+          className = classes[j];
           this._searchSuggestions.classes[className] = (this._searchSuggestions.classes[className] || 0) + 1;
         }
       }
@@ -1000,15 +1011,16 @@ SelectorSearch.prototype = {
         return;
       }
 
-      var nodes = null, node, className, len, len2, i, j;
+      var nodes = null, node, className, len, len2, i, j, classes;
       if (this.state() == this.States.CLASS) {
         nodes = this.doc.querySelectorAll("[class]");
         len = nodes.length;
         for (i = 0; i < len; i++) {
           node = nodes[i];
-          len2 = node.classList.length;
+          classes = node.classList || node.className.split(" ").filter(function(item) {return item.length;});
+          len2 = classes.length;
           for (j = 0; j < len2; j++) {
-            className = node.classList[j];
+            className = classes[j];
             this._searchSuggestions.classes[className] = (this._searchSuggestions.classes[className] || 0) + 1;
           }
         }
