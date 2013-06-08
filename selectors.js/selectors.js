@@ -537,7 +537,7 @@ function SelectorSearch() {
   this.searchBox = (typeof arguments[0] == "string")
                    ? (this.doc = document).querySelector(arguments[0])
                    : (!arguments[0].ownerDocument)
-                     ? (this.doc = arguments[0] && typeof arguments[1] == "string")
+                     ? ((this.doc = arguments[0]) && typeof arguments[1] == "string")
                        ? this.doc.querySelector(arguments[1])
                        : arguments[1]
                      : (this.doc = arguments[0].ownerDocument, arguments[0]);
