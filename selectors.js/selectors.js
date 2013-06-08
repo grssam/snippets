@@ -892,7 +892,7 @@ SelectorSearch.prototype = {
   _showPopup: function SelectorSearch__showPopup(aList, aFirstPart) {
     // Sort alphabetically in increaseing order.
     aList = aList.sort();
-    // Sort based on count= in decreasing order.
+    // Sort based on count in decreasing order.
     aList = aList.sort(function(a, b) {
       return a[1] < b[1];
     });
@@ -991,9 +991,9 @@ SelectorSearch.prototype = {
       if (this.state() == this.States.CLASS) {
         nodes = this.doc.querySelectorAll("[class]");
         len = nodes.length;
-        len2 = node.classList.length;
         for (i = 0; i < len; i++) {
           node = nodes[i];
+          len2 = node.classList.length;
           for (j = 0; j < len2; j++) {
             className = node.classList[j];
             this._searchSuggestions.classes[className] = (this._searchSuggestions.classes[className] || 0) + 1;
