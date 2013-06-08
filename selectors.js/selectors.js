@@ -76,7 +76,7 @@ var Popup = function Popup(aDocument, aOptions) {
     this.panel.addEventListener("select", this.onSelect, false);
   }
 
-  this.panel.addEventListener("keypress", this._onKeypress, false);
+  this.panel.addEventListener("keydown", this._onKeypress, false);
   this.panel.addEventListener("mouseup", this._onClick, false);
 
   // Detecting webkit due to https://bugs.webkit.org/show_bug.cgi?id=92029 :(
@@ -95,6 +95,10 @@ var Popup = function Popup(aDocument, aOptions) {
       }
       else {
         return;
+      }
+      this.focus();
+      if (this.onKeypress) {
+        this.onKeypress(event);
       }
       event.preventDefault();
       event.stopPropagation();
@@ -257,7 +261,7 @@ Popup.prototype = {
       this.panel.removeEventListener("select", this.onSelect, false);
     }
 
-    this.panel.removeEventListener("keypress", this._onKeypress, false);
+    this.panel.removeEventListener("keydown", this._onKeypress, false);
     this.panel.removeEventListener("mouseup", this._onClick, false);
 
     this.panel.parentNode.removeChild(this.panel);
@@ -570,7 +574,7 @@ function SelectorSearch() {
   this.searchPopup = new Popup(this.panelDoc, options);
 
   // event listeners.
-  this.searchBox.addEventListener("keypress", this._onSearchKeypress, true);
+  this.searchBox.addEventListener("keydown", this._onSearchKeypress, true);
   this.searchBox.addEventListener("input", this._onHTMLSearch, true);
 }
 
@@ -671,7 +675,7 @@ SelectorSearch.prototype = {
    */
   destroy: function SelectorSearch_destroy() {
     // event listeners.
-    this.searchBox.removeEventListener("keypress", this._onSearchKeypress, true);
+    this.searchBox.removeEventListener("keydown", this._onSearchKeypress, true);
     this.searchBox.removeEventListener("input", this._onHTMLSearch, true);
     this.searchPopup.destroy();
     this.searchPopup = null;
@@ -762,8 +766,8 @@ SelectorSearch.prototype = {
   _onSearchKeypress: function SelectorSearch__onSearchKeypress(aEvent) {
     var query = this.searchBox.value;
     switch(aEvent.keyCode) {
-      case aEvent.DOM_VK_ENTER:
-      case aEvent.DOM_VK_RETURN:
+      case 14: // ENTER
+      case 13: // RETURN
         if (query == this._lastSearched) {
           this._searchIndex = (this._searchIndex + 1) % this._searchResults.length;
         }
@@ -773,7 +777,7 @@ SelectorSearch.prototype = {
         }
         break;
 
-      case aEvent.DOM_VK_UP:
+      case 38: // UP
         if (this.searchPopup.isOpen() && this.searchPopup.itemCount() > 0) {
           this.searchPopup.selectPreviousItem();
           this.searchPopup.focus();
@@ -784,7 +788,7 @@ SelectorSearch.prototype = {
         }
         break;
 
-      case aEvent.DOM_VK_DOWN:
+      case 40: // DOWN
         if (this.searchPopup.isOpen() && this.searchPopup.itemCount() > 0) {
           this.searchPopup.selectedIndex = 0;
           this.searchPopup.focus();
@@ -793,7 +797,7 @@ SelectorSearch.prototype = {
         this._searchIndex = (this._searchIndex + 1) % this._searchResults.length;
         break;
 
-      case aEvent.DOM_VK_TAB:
+      case 9: // TAB
         if (this.searchPopup.isOpen() &&
             this.searchPopup.getItemAtIndex(this.searchPopup.itemCount() - 1)
                 .preLabel == query) {
@@ -802,8 +806,8 @@ SelectorSearch.prototype = {
         }
         break;
 
-      case aEvent.DOM_VK_BACK_SPACE:
-      case aEvent.DOM_VK_DELETE:
+      case 8: // BACK_SPACE
+      case 46: // DELETE
         // need to throw away the lastValidSearch.
         this._lastToLastValidSearch = null;
         // This gets the most complete selector from the query. For ex.
@@ -812,6 +816,11 @@ SelectorSearch.prototype = {
         this._lastValidSearch = (query.match(/(.*)[\.#][^\.# ]{0,}$/) ||
                                  query.match(/(.*[\s>+])[a-zA-Z][^\.# ]{0,}$/) ||
                                  ["",""])[1];
+        return;
+
+      case 27: // ESCAPE
+        this.searchPopup.hidePopup();
+        this.searchBox.focus();
         return;
 
       default:
@@ -830,9 +839,9 @@ SelectorSearch.prototype = {
    */
   _onListBoxKeypress: function SelectorSearch__onListBoxKeypress(aEvent) {
     switch(aEvent.keyCode || aEvent.button) {
-      case aEvent.DOM_VK_ENTER:
-      case aEvent.DOM_VK_RETURN:
-      case aEvent.DOM_VK_TAB:
+      case 14: // ENTER
+      case 13: // RETURN
+      case 9: // TAB
       case 0: // left mouse button
         aEvent.stopPropagation();
         aEvent.preventDefault();
@@ -841,7 +850,7 @@ SelectorSearch.prototype = {
         this._onHTMLSearch();
         break;
 
-      case aEvent.DOM_VK_UP:
+      case 38: // UP
         if (this.searchPopup.selectedIndex == 0) {
           this.searchPopup.selectedIndex = -1;
           aEvent.stopPropagation();
@@ -854,7 +863,7 @@ SelectorSearch.prototype = {
         }
         break;
 
-      case aEvent.DOM_VK_DOWN:
+      case 40: // DOWN
         if (this.searchPopup.selectedIndex == this.searchPopup.itemCount() - 1) {
           this.searchPopup.selectedIndex = -1;
           aEvent.stopPropagation();
@@ -867,7 +876,7 @@ SelectorSearch.prototype = {
         }
         break;
 
-      case aEvent.DOM_VK_BACK_SPACE:
+      case 8: // BACK_SPACE
         aEvent.stopPropagation();
         aEvent.preventDefault();
         this.searchBox.focus();
@@ -882,6 +891,10 @@ SelectorSearch.prototype = {
                                  ["",""])[1];
         this._onHTMLSearch();
         break;
+
+      case 27: // ESCAPE
+        this.searchPopup.hidePopup();
+        this.searchBox.focus();
     }
   },
 
