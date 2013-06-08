@@ -1,7 +1,10 @@
 #selectors-test {
   position: absolute;
   top: 200px;
-  left: 100px;
+  left: 50px;
+  padding: 20px;
+  border: 1px solid rgb(229, 229, 238);
+  background: rgb(245,245,255);
 }
 
 /*--------------------- Typography ----------------------------*/
