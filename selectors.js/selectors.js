@@ -519,19 +519,34 @@ Popup.prototype = {
  * Converts any input box on a page to a CSS selector search and suggestion box.
  *
  * @constructor
- * @param nsIDOMDocument aContentDocument
+ * @param {nsIDOMDocument} aContentDocument
  *        The content document which inspector is attached to.
- * @param nsiInputElement aInputNode
- *        The input element to which the panel will be attached and from where
- *        search input will be taken.
- * @param Function aCallback
- *        The method to callback when a search is available.
- *        This method is called with the matched node as the first argument.
+ * @param {nsiInputElement|String} aInputNode
+ *        The input element or the selector for teh input element to which the
+ *        panel will be attached and from where search input will be taken.
+ * @param {Object} aOptions
+ *        The options provided to the selector. Current available options are:
+ *        - TODO
+ * @arguments The following combinations of the above three arguments is possible
+ *            - (aContentDocument, aInputNode[, aOptions])
+ *            - (aContentDocument, String[, aOptions])
+ *            - (aInputNode[, aOptions])
+ *            - (String[, aOptions])
  */
-function SelectorSearch(aContentDocument, aInputNode, aCallback) {
-  this.doc = aContentDocument;
-  this.callback = aCallback;
-  this.searchBox = aInputNode;
+function SelectorSearch() {
+  this.searchBox = (typeof arguments[0] == "string")
+                   ? (this.doc = document).querySelector(arguments[0])
+                   : (!arguments[0].ownerDocument)
+                     ? (this.doc = arguments[0] && typeof arguments[1] == "string")
+                       ? this.doc.querySelector(arguments[1])
+                       : arguments[1]
+                     : (this.doc = arguments[0].ownerDocument, arguments[0]);
+
+  var last = arguments[arguments.length - 1];
+  this.options = (last !== this.searchBox)
+                 ? (typeof last == "object")
+                   ? last : {}
+                 : {};
   this.panelDoc = this.searchBox.ownerDocument;
 
   // initialize variables.
@@ -550,7 +565,7 @@ function SelectorSearch(aContentDocument, aInputNode, aCallback) {
 
   // Options for the Popup.
   var options = {
-    font: aInputNode.ownerDocument.defaultView.getComputedStyle(aInputNode).fontFamily,
+    font: this.searchBox.ownerDocument.defaultView.getComputedStyle(this.searchBox).fontFamily,
     autoSelect: true,
     onClick: this._onListBoxKeypress,
     onSelect: this._onListBoxKeypress,
