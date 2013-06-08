@@ -38,7 +38,7 @@ var MAX_SUGGESTIONS = 15,
  * @param Object aOptions
  *        An object consiting any of the following options:
  *        - font {String} The font that is being used in the input box.
- *        - class {String} The class that you want the popup to have.
+ *        - className {String} The class that you want the popup to have.
  *        - position {String} The preffered position of the popup (above or below).
  *        - autoSelect {Boolean} Boolean to allow the first entry of the popup
  *                     panel to be automatically selected when the popup shows.
@@ -65,11 +65,11 @@ var Popup = function Popup(aDocument, aOptions) {
   if (!this.panel) {
     this.panel = this.document.createElement("div");
     this.panel.setAttribute("id", id);
-    this.panel.className = aOptions.class || "autocomplete";
+    this.panel.className = aOptions.className || "autocomplete";
     this.document.documentElement.appendChild(this.panel);
   }
   else {
-    this.panel.className = aOptions.class || "autocomplete"
+    this.panel.className = aOptions.className || "autocomplete"
   }
 
   if (this.onSelect) {
