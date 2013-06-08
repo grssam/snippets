@@ -322,7 +322,7 @@ Popup.prototype = {
    *
    * @private
    */
-  _onKeypress: function P__onKeypress() {
+  _onKeypress: function P__onKeypress(aEvent) {
     for (var i = 0; i < this.values.length; i++) {
       if (this.panel.childNodes[i*2].checked) {
         this.selectedIndex = i;
@@ -821,7 +821,7 @@ SelectorSearch.prototype = {
     aEvent.preventDefault();
     aEvent.stopPropagation();
     if (this._searchResults.length > 0) {
-      this.callback(this._searchResults[this._searchIndex]);
+      this.callback && this.callback(this._searchResults[this._searchIndex]);
     }
   },
 
