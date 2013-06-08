@@ -8,22 +8,19 @@
  * Author:
  *   Girish Sharma <scrapmachines@gmail.com>
  */
-/* vim: set ft=javascript ts=2 et sw=2 tw=80: */
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 (function (root, factory) {
   'use strict';
 
   // Universal Module Definition (UMD) to support AMD, CommonJS/Node.js,
   // Rhino, and plain browser loading.
   if (typeof define === 'function' && define.amd) {
-      define(['exports'], factory);
-  } else if (typeof exports !== 'undefined') {
-      factory(exports);
-  } else {
-      factory((root.selectors = {}));
+    define(['exports'], factory);
+  }
+  else if (typeof exports !== 'undefined') {
+    factory(exports);
+  }
+  else {
+    factory((root.selectors = {}));
   }
 }(this, function (exports) {
 
@@ -210,11 +207,13 @@ Popup.prototype = {
   /**
    * Open the autocomplete popup panel.
    *
-   * @param nsIDOMNode aAnchor
-   *        Optional node to anchor the panel to.
+   * @param x {Number} The x coordinate of the top left point of the input box.
+   * @param y {Number} The y coordinate of the top left point of the input box.
    */
   openPopup: function P_openPopup(x, y) {
     this.panel.style.display = "block";
+    // If position is above, the (x, y) point will be the bottom left point of
+    // the popup, unless there is not enough space to show the popup above.
     if (this.position == "above") {
       var height = 0;
       if (this.values.length) {
@@ -232,7 +231,6 @@ Popup.prototype = {
     if (this.autoSelect) {
       this.selectFirstItem();
     }
-    // this._updateSize();
   },
 
   /**
@@ -251,10 +249,7 @@ Popup.prototype = {
   },
 
   /**
-   * Destroy the object instance. Please note that the panel DOM elements remain
-   * in the DOM, because they might still be in use by other instances of the
-   * same code. It is the responsability of the client code to perform DOM
-   * cleanup.
+   * Destroy the object instance.
    */
   destroy: function P_destroy() {
     if (this.isOpen()) {
@@ -266,7 +261,7 @@ Popup.prototype = {
       this.panel.removeEventListener("select", this.onSelect, false);
     }
 
-    this.panel.removeEventListener("select", this._onKeypress, false);
+    this.panel.removeEventListener("keypress", this._onKeypress, false);
     this.panel.removeEventListener("mouseup", this._onClick, false);
 
     this.panel.parentNode.removeChild(this.panel);
@@ -275,11 +270,11 @@ Popup.prototype = {
   },
 
   /**
-   * Get the autocomplete items array.
+   * Gets the autocomplete items array.
    *
-   * @param Number aIndex The index of the item what is wanted.
+   * @param aIndex {Number} The index of the item what is wanted.
    *
-   * @return The autocomplete item at index aIndex.
+   * @return {Object} The autocomplete item at index aIndex.
    */
   getItemAtIndex: function P_getItemAtIndex(aIndex) {
     return this.values[aIndex];
@@ -288,29 +283,26 @@ Popup.prototype = {
   /**
    * Get the autocomplete items array.
    *
-   * @return array
-   *         The array of autocomplete items.
+   * @return {Array} The array of autocomplete items.
    */
   getItems: function P_getItems() {
     return this.values;
   },
 
   /**
-   * Set the autocomplete items list, in one go.
+   * Sets the autocomplete items list, in one go.
    *
-   * @param array aItems
+   * @param {Array} aItems
    *        The list of items you want displayed in the popup list.
    */
   setItems: function P_setItems(aItems) {
     this.clearItems();
     aItems.forEach(this.appendItem, this);
 
-    this.flushItems();
+    this._flushItems();
 
-    if (this.isOpen()) {
-      if (this.autoSelect) {
-        this.selectFirstItem();
-      }
+    if (this.isOpen() && this.autoSelect) {
+      this.selectFirstItem();
     }
   },
 
@@ -328,6 +320,12 @@ Popup.prototype = {
     }
   },
 
+  /**
+   * Private method to handle keypress on the popup, update the selectedIndex
+   * and then call the provided onKeypress method.
+   *
+   * @private
+   */
   _onKeypress: function P__onKeypress() {
     for (var i = 0; i < this.values.length; i++) {
       if (this.panel.childNodes[i*2].checked) {
@@ -340,6 +338,12 @@ Popup.prototype = {
     }
   },
 
+  /**
+   * Private method to handle click on the popup, update the selectedIndex and
+   * then call the provided onKeypress method.
+   *
+   * @private
+   */
   _onClick: function P__onClick(aEvent) {
     for (var i = 0; i < this.values.length; i++) {
       if (this.panel.childNodes[i*2 + 1].firstChild == aEvent.target) {
@@ -353,21 +357,7 @@ Popup.prototype = {
   },
 
   /**
-   * Update the panel size to fit the content.
-   *
-   * @private
-   */
-  _updateSize: function P__updateSize() {
-    if (!this.isOpen()) {
-      return;
-    }
-
-    var height = window.getComputedStyle(this.panel.childNodes[0]).height.replace("px", "") * this.itemCount();
-    this.panel.style.height = (height - 1) + "px";
-  },
-
-  /**
-   * Clear all the items from the autocomplete list.
+   * Clears all the items from the autocomplete list.
    */
   clearItems: function P_clearItems() {
     this.panel.innerHTML = "";
@@ -377,17 +367,20 @@ Popup.prototype = {
   },
 
   /**
-   * Getter for the selected item.
-   * @type object
+   * Returns the object associated with the selected item. Note that this does
+   * not return the DOM element of the selected item, but the object in the form
+   * of {label, preLabe, count}.
+   *
+   * @return {Object} The object corresponding to the selected item.
    */
   getSelectedItem: function P_getSelectedItem() {
     return this.values[this.selectedIndex];
   },
 
   /**
-   * Append an item into the autocomplete list.
+   * Appends an item into the autocomplete list.
    *
-   * @param object aItem
+   * @param {Object} aItem
    *        The item you want appended to the list.
    *        The item object can have the following properties:
    *        - label {String} Property which is used as the displayed value.
@@ -422,21 +415,27 @@ Popup.prototype = {
     this.values.push(aItem);
   },
 
-  flushItems: function P_flushItems() {
+  /**
+   * Method to flush the generated string by the appendItems method into the
+   * panel's inner HTML.
+   *
+   * @private
+   */
+  _flushItems: function P__flushItems() {
     this.panel.innerHTML = this._cachedString;
   },
 
   /**
-   * Find the richlistitem element that belongs to an item.
+   * Finds the label element that belongs to an item.
    *
    * @private
    *
-   * @param object aItem
+   * @param {Object} aItem
    *        The object you want found in the list.
    *
-   * @return nsIDOMNode|null
+   * @return {nsIDOMNode|null}
    *         The nsIDOMNode that belongs to the given item object. This node is
-   *         the richlistitem element.
+   *         the label element.
    */
   _findListItem: function P__findListItem(aItem) {
     var toReturn = null;
@@ -456,9 +455,9 @@ Popup.prototype = {
   },
 
   /**
-   * Remove an item from the popup list.
+   * Removes an item from the popup list.
    *
-   * @param object aItem
+   * @param {Object} aItem
    *        The item you want removed.
    */
   removeItem: function P_removeItem(aItem) {
@@ -467,18 +466,18 @@ Popup.prototype = {
   },
 
   /**
-   * Getter for the number of items in the popup.
-   * @type number
+   * Returns the number of items in the popup.
+   *
+   * @returns {Number} The number of items in the popup
    */
   itemCount: function P_itemCount() {
     return this.values.length;
   },
 
   /**
-   * Select the next item in the list.
+   * Selects the next item in the list.
    *
-   * @return object
-   *         The newly selected item object.
+   * @return {Object} The newly selected item object.
    */
   selectNextItem: function P_selectNextItem() {
     if (this.selectedIndex < (this.itemCount() - 1)) {
@@ -492,10 +491,9 @@ Popup.prototype = {
   },
 
   /**
-   * Select the previous item in the list.
+   * Selects the previous item in the list.
    *
-   * @return object
-   *         The newly selected item object.
+   * @return {Object} The newly selected item object.
    */
   selectPreviousItem: function P_selectPreviousItem() {
     if (this.selectedIndex > 0) {
@@ -509,7 +507,7 @@ Popup.prototype = {
   },
 
   /**
-   * Focuses the richlistbox.
+   * Focuses the selected item in the popup.
    */
   focus: function P_focus() {
     this.panel.childNodes[this.selectedIndex*2].checked = true;
@@ -663,6 +661,7 @@ SelectorSearch.prototype = {
   destroy: function SelectorSearch_destroy() {
     // event listeners.
     this.searchBox.removeEventListener("keypress", this._onSearchKeypress, true);
+    this.searchBox.removeEventListener("input", this._onHTMLSearch, true);
     this.searchPopup.destroy();
     this.searchPopup = null;
     this.searchBox = null;
@@ -927,8 +926,8 @@ SelectorSearch.prototype = {
     }
     if (total > 0) {
       this.searchPopup.setItems(items);
-      var style = this.doc.defaultView.getComputedStyle(this.searchBox);
-      this.searchPopup.openPopup(+style.left.replace("px", ""), +style.top.replace("px", ""));
+      var style = this.searchBox.getBoundingClientRect();
+      this.searchPopup.openPopup(style.left, style.top);
     }
     else {
       this.searchPopup.hidePopup();
