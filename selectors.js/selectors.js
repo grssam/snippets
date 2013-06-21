@@ -231,16 +231,22 @@ Popup.prototype = {
     this.panel.style.display = "block";
     // If position is above, the (x, y) point will be the bottom left point of
     // the popup, unless there is not enough space to show the popup above.
-    if (this.position == "above") {
-      var height = 0;
-      if (this.values.length) {
-        var style = this.panel.getBoundingClientRect();
-        height = style.height;
-      }
-      this.panel.style.top = (y - height) +"px";
+    var height = 0;
+    if (this.values.length) {
+      var style = this.panel.getBoundingClientRect();
+      height = style.height;
+    }
+    if ((this.position == "above" && y - height - scrollY < 0) ||
+        (this.position == "below" && y + height + 20 + scrollY > innerHeight)) {
+      this.panel.style.top = (y + 20  + scrollY) +"px";
+      this.inverted = (this.position == "above");
     }
     else {
-      this.panel.style.top = (y + 20) +"px";
+      this.panel.style.top = (y - height + scrollY) +"px";
+      this.inverted = (this.position == "below");
+    }
+    if (this.inverted) {
+      this.reversePopup();
     }
     this.panel.style.left = x +"px";
     this._open = true;
@@ -287,6 +293,23 @@ Popup.prototype = {
   },
 
   /**
+   * Reverses the items in the popup
+   */
+  reversePopup: function() {
+    var node = this.panel,
+        parent = node.parentNode,
+        next = node.nextSibling,
+        frag = node.ownerDocument.createDocumentFragment();
+    parent.removeChild(node);
+    while(node.lastChild) {
+      frag.appendChild(node.lastChild.previousSibling);
+      frag.appendChild(node.lastChild);
+    }
+    node.appendChild(frag);
+    parent.insertBefore(node, next);
+  },
+
+  /**
    * Gets the autocomplete items array.
    *
    * @param aIndex {Number} The index of the item what is wanted.
@@ -294,7 +317,7 @@ Popup.prototype = {
    * @return {Object} The autocomplete item at index aIndex.
    */
   getItemAtIndex: function(aIndex) {
-    return this.values[aIndex];
+    return this.values[this.inverted ? this.itemCount() - aIndex - 1 : aIndex];
   },
 
   /**
@@ -329,7 +352,8 @@ Popup.prototype = {
    * below, and last index if position is above.
    */
   selectFirstItem: function() {
-    if (this.position.indexOf("above") > -1) {
+    if ((this.position.indexOf("above") > -1 && !this.inverted) ||
+        (this.position.indexOf("below") > -1 && this.inverted)) {
       this.panel.childNodes[(this.selectedIndex = this.values.length - 1)*2].checked = true;
     }
     else {
@@ -391,7 +415,9 @@ Popup.prototype = {
    * @return {Object} The object corresponding to the selected item.
    */
   getSelectedItem: function() {
-    return this.values[this.selectedIndex];
+    return this.values[this.inverted
+                       ? this.itemCount() - this.selectedIndex - 1
+                       : this.selectedIndex];
   },
 
   /**
@@ -503,7 +529,7 @@ Popup.prototype = {
    * @return {Object} The newly selected item object.
    */
   selectNextItem: function() {
-    if (this.selectedIndex < (this.itemCount() - 1)) {
+    if (this.selectedIndex < this.itemCount() - 1) {
       this.selectedIndex++;
     }
     else {
@@ -530,9 +556,27 @@ Popup.prototype = {
   },
 
   /**
+   * Gets the next item to the selected item in the list.
+   *
+   * @return {Object} The next item object.
+   */
+  getNextItem: function() {
+    return this.getItemAtIndex(this.selectedIndex + 1);
+  },
+
+  /**
+   * Gets the previous item to the selected item in the list.
+   *
+   * @return {Object} The previous item object.
+   */
+  getPreviousItem: function() {
+    return this.getItemAtIndex(this.selectedIndex - 1);
+  },
+
+  /**
    * Focuses the selected item in the popup.
    */
-  focus: function P_focus() {
+  focus: function() {
     this.panel.childNodes[this.selectedIndex*2].checked = true;
     this.panel.childNodes[this.selectedIndex*2].focus();
   },
@@ -878,8 +922,7 @@ SelectorSearch.prototype = {
           this.searchBox.focus();
         }
         else {
-          var index = this.searchPopup.selectedIndex;
-          this.searchBox.value = this.searchPopup.getItemAtIndex(index - 1).label;
+          this.searchBox.value = this.searchPopup.getPreviousItem().label;
         }
         break;
 
@@ -891,8 +934,7 @@ SelectorSearch.prototype = {
           this.searchBox.focus();
         }
         else {
-          var index = this.searchPopup.selectedIndex;
-          this.searchBox.value = this.searchPopup.getItemAtIndex(index + 1).label;
+          this.searchBox.value = this.searchPopup.getNextItem().label;
         }
         break;
 
