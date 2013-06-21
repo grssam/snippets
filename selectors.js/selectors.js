@@ -160,6 +160,10 @@ var Popup = function Popup(aDocument, aOptions) {
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
 }
+#selectorsPopup label > b {
+  color: #000;
+  font-weight: normal;
+}
 #selectorsPopup label.pre:before {
   color: #000;
   content: attr(data-pre);
@@ -227,16 +231,22 @@ Popup.prototype = {
     this.panel.style.display = "block";
     // If position is above, the (x, y) point will be the bottom left point of
     // the popup, unless there is not enough space to show the popup above.
-    if (this.position == "above") {
-      var height = 0;
-      if (this.values.length) {
-        var style = this.panel.getBoundingClientRect();
-        height = style.height;
-      }
-      this.panel.style.top = (y - height) +"px";
+    var height = 0;
+    if (this.values.length) {
+      var style = this.panel.getBoundingClientRect();
+      height = style.height;
+    }
+    if ((this.position == "above" && y - height - scrollY < 0) ||
+        (this.position == "below" && y + height + 20 + scrollY > innerHeight)) {
+      this.panel.style.top = (y + 20  + scrollY) +"px";
+      this.inverted = (this.position == "above");
     }
     else {
-      this.panel.style.top = (y + 20) +"px";
+      this.panel.style.top = (y - height + scrollY) +"px";
+      this.inverted = (this.position == "below");
+    }
+    if (this.inverted) {
+      this.reversePopup();
     }
     this.panel.style.left = x +"px";
     this._open = true;
@@ -283,6 +293,23 @@ Popup.prototype = {
   },
 
   /**
+   * Reverses the items in the popup
+   */
+  reversePopup: function() {
+    var node = this.panel,
+        parent = node.parentNode,
+        next = node.nextSibling,
+        frag = node.ownerDocument.createDocumentFragment();
+    parent.removeChild(node);
+    while(node.lastChild) {
+      frag.appendChild(node.lastChild.previousSibling);
+      frag.appendChild(node.lastChild);
+    }
+    node.appendChild(frag);
+    parent.insertBefore(node, next);
+  },
+
+  /**
    * Gets the autocomplete items array.
    *
    * @param aIndex {Number} The index of the item what is wanted.
@@ -290,7 +317,7 @@ Popup.prototype = {
    * @return {Object} The autocomplete item at index aIndex.
    */
   getItemAtIndex: function(aIndex) {
-    return this.values[aIndex];
+    return this.values[this.inverted ? this.itemCount() - aIndex - 1 : aIndex];
   },
 
   /**
@@ -325,7 +352,8 @@ Popup.prototype = {
    * below, and last index if position is above.
    */
   selectFirstItem: function() {
-    if (this.position.indexOf("above") > -1) {
+    if ((this.position.indexOf("above") > -1 && !this.inverted) ||
+        (this.position.indexOf("below") > -1 && this.inverted)) {
       this.panel.childNodes[(this.selectedIndex = this.values.length - 1)*2].checked = true;
     }
     else {
@@ -387,7 +415,9 @@ Popup.prototype = {
    * @return {Object} The object corresponding to the selected item.
    */
   getSelectedItem: function() {
-    return this.values[this.selectedIndex];
+    return this.values[this.inverted
+                       ? this.itemCount() - this.selectedIndex - 1
+                       : this.selectedIndex];
   },
 
   /**
@@ -408,13 +438,16 @@ Popup.prototype = {
    */
   appendItem: function(aItem) {
     var str = this._cachedString;
-    var label = aItem.label.slice((aItem.preLabel || "").length);
+    var label = aItem.label, pre = aItem.preLabel;
     str += "<input type='radio' name='autocomplete-radios' value='" + label +
            "'><pre><label";
-    var cls = "";
-    if (aItem.preLabel) {
-      str += " data-pre='" + aItem.preLabel + "'";
+    var cls = "", fuzzy = false;
+    if (pre && label.indexOf(pre) == 0) {
+      str += " data-pre='" + pre + "'";
       cls += "pre";
+    }
+    else if (pre) {
+      fuzzy = true;
     }
     if (aItem.count && aItem.count > 1) {
       str += " data-count='" + aItem.count + "'";
@@ -423,7 +456,10 @@ Popup.prototype = {
     if (cls) {
       str += " class='" + cls + "'";
     }
-    str += " for='" + label + "'>" + label + "</label></pre>";
+    str += " for='" + label + "'>" + (fuzzy ?
+           (h = {}, label.replace(new RegExp("[" + pre + "]", "g"), function(m) {
+             return !h[m] ? (h[m] = 1, "<b>" + m + "</b>") : m;
+           })) : label.slice((pre || "").length)) + "</label></pre>";
     this._cachedString = str;
     this.values.push(aItem);
   },
@@ -493,7 +529,7 @@ Popup.prototype = {
    * @return {Object} The newly selected item object.
    */
   selectNextItem: function() {
-    if (this.selectedIndex < (this.itemCount() - 1)) {
+    if (this.selectedIndex < this.itemCount() - 1) {
       this.selectedIndex++;
     }
     else {
@@ -520,9 +556,27 @@ Popup.prototype = {
   },
 
   /**
+   * Gets the next item to the selected item in the list.
+   *
+   * @return {Object} The next item object.
+   */
+  getNextItem: function() {
+    return this.getItemAtIndex(this.selectedIndex + 1);
+  },
+
+  /**
+   * Gets the previous item to the selected item in the list.
+   *
+   * @return {Object} The previous item object.
+   */
+  getPreviousItem: function() {
+    return this.getItemAtIndex(this.selectedIndex - 1);
+  },
+
+  /**
    * Focuses the selected item in the popup.
    */
-  focus: function P_focus() {
+  focus: function() {
     this.panel.childNodes[this.selectedIndex*2].checked = true;
     this.panel.childNodes[this.selectedIndex*2].focus();
   },
@@ -660,7 +714,7 @@ SelectorSearch.prototype = {
         case this.States.CLASS:
           if (subQuery.match(/[\.]+[^\.]*$/)[0].length > 2) {
             // Checks whether the subQuery has atleast one [a-zA-Z] after the '.'.
-            this._state = (lastChar == " " || lastChar == ">")
+            this._state = (lastChar == " " || lastChar == ">" || lastChar == "~")
             ? this.States.TAG
             : lastChar == "#"
               ? this.States.ID
@@ -671,7 +725,7 @@ SelectorSearch.prototype = {
         case this.States.ID:
           if (subQuery.match(/[#]+[^#]*$/)[0].length > 2) {
             // Checks whether the subQuery has atleast one [a-zA-Z] after the '#'.
-            this._state = (lastChar == " " || lastChar == ">")
+            this._state = (lastChar == " " || lastChar == ">" || lastChar == "~")
             ? this.States.TAG
             : lastChar == "."
               ? this.States.CLASS
@@ -732,20 +786,20 @@ SelectorSearch.prototype = {
       this._lastValidSearch = query;
       // Even though the selector matched atleast one node, there is still
       // possibility of suggestions.
-      if (query.match(/[\s>+]$/)) {
+      if (query.match(/[\s>+~]$/)) {
         // If the query has a space or '>' at the end, create a selector to match
         // the children of the selector inside the search box by adding a '*'.
         this._lastValidSearch += "*";
       }
-      else if (query.match(/[\s>+][\.#a-zA-Z][\.#>\s+]*$/)) {
+      else if (query.match(/[\s>+~][\.#a-zA-Z][\.#>\s+~]*$/)) {
         // If the query is a partial descendant selector which does not matches
         // any node, remove the last incomplete part and add a '*' to match
         // everything. For ex, convert 'foo > b' to 'foo > *' .
-        var lastPart = query.match(/[\s>+][\.#a-zA-Z][^>\s+]*$/)[0];
+        var lastPart = query.match(/[\s>+~][\.#a-zA-Z][^>\s+~]*$/)[0];
         this._lastValidSearch = query.slice(0, -1 * lastPart.length + 1) + "*";
       }
 
-      if (!query.slice(-1).match(/[\.#\s>+]/)) {
+      if (!query.slice(-1).match(/[\.#\s>+~]/)) {
         // Hide the popup if we have some matching nodes and the query is not
         // ending with [.# >] which means that the selector is not at the
         // beginning of a new class, tag or id.
@@ -759,11 +813,11 @@ SelectorSearch.prototype = {
       this.callback && this.callback(this._searchResults[0]);
     }
     else {
-      if (query.match(/[\s>+]$/)) {
+      if (query.match(/[\s>+~]$/)) {
         this._lastValidSearch = query + "*";
       }
-      else if (query.match(/[\s>+][\.#a-zA-Z][\.#>\s+]*$/)) {
-        var lastPart = query.match(/[\s+>][\.#a-zA-Z][^>\s+]*$/)[0];
+      else if (query.match(/[\s>+~][\.#a-zA-Z][\.#>\s+~]*$/)) {
+        var lastPart = query.match(/[\s+>~][\.#a-zA-Z][^>\s+~]*$/)[0];
         this._lastValidSearch = query.slice(0, -1 * lastPart.length + 1) + "*";
       }
       this.showSuggestions();
@@ -824,8 +878,8 @@ SelectorSearch.prototype = {
         // '.foo.ba' returns '.foo' , '#foo > .bar.baz' returns '#foo > .bar'
         // '.foo +bar' returns '.foo +' and likewise.
         this._lastValidSearch = (query.match(/(.*)[\.#][^\.# ]{0,}$/) ||
-                                 query.match(/(.*[\s>+])[a-zA-Z][^\.# ]{0,}$/) ||
-                                 ["",""])[1];
+                                 query.match(/(.*[\s>+~])[a-zA-Z][^\.# ]{0,}$/) ||
+                                 ["",""])[1] + "*";
         return;
 
       case 27: // ESCAPE
@@ -868,8 +922,7 @@ SelectorSearch.prototype = {
           this.searchBox.focus();
         }
         else {
-          var index = this.searchPopup.selectedIndex;
-          this.searchBox.value = this.searchPopup.getItemAtIndex(index - 1).label;
+          this.searchBox.value = this.searchPopup.getPreviousItem().label;
         }
         break;
 
@@ -881,8 +934,7 @@ SelectorSearch.prototype = {
           this.searchBox.focus();
         }
         else {
-          var index = this.searchPopup.selectedIndex;
-          this.searchBox.value = this.searchPopup.getItemAtIndex(index + 1).label;
+          this.searchBox.value = this.searchPopup.getNextItem().label;
         }
         break;
 
@@ -897,8 +949,8 @@ SelectorSearch.prototype = {
         this._lastToLastValidSearch = null;
         var query = this.searchBox.value;
         this._lastValidSearch = (query.match(/(.*)[\.#][^\.# ]{0,}$/) ||
-                                 query.match(/(.*[\s>+])[a-zA-Z][^\.# ]{0,}$/) ||
-                                 ["",""])[1];
+                                 query.match(/(.*[\s>+~])[a-zA-Z][^\.# ]{0,}$/) ||
+                                 ["",""])[1] + "*";
         this._onHTMLSearch();
         break;
 
@@ -931,18 +983,18 @@ SelectorSearch.prototype = {
     var value, len = aList.length;
     for (var i = 0; i < len; i++) {
       value = aList[i][0];
-      // for cases like 'div ' or 'div >' or 'div+'
-      if (query.match(/[\s>+]$/)) {
+      // for cases like 'div ' or 'div >' or 'div+' or 'div~'
+      if (query.match(/[\s>+~]$/)) {
         value = query + value;
       }
       // for cases like 'div #a' or 'div .a' or 'div > d' and likewise
-      else if (query.match(/[\s>+][\.#a-zA-Z][^\s>+\.#]*$/)) {
-        var lastPart = query.match(/[\s>+][\.#a-zA-Z][^>\s+\.#]*$/)[0];
+      else if (query.match(/[\s>+~][\.#a-zA-Z][^\s>+~\.#]*$/)) {
+        var lastPart = query.match(/[\s>+~][\.#a-zA-Z][^>\s+~\.#]*$/)[0];
         value = query.slice(0, -1 * lastPart.length + 1) + value;
       }
       // for cases like 'div.class' or '#foo.bar' and likewise
-      else if (query.match(/[a-zA-Z][#\.][^#\.\s+>]*$/)) {
-        var lastPart = query.match(/[a-zA-Z][#\.][^#\.\s>+]*$/)[0];
+      else if (query.match(/[a-zA-Z][#\.][^#\.\s+>~]*$/)) {
+        var lastPart = query.match(/[a-zA-Z][#\.][^#\.\s>+~]*$/)[0];
         value = query.slice(0, -1 * lastPart.length + 1) + value;
       }
       var item = {
@@ -1053,7 +1105,7 @@ SelectorSearch.prototype = {
     if (this.state() == this.States.TAG) {
       // gets the tag that is being completed. For ex. 'div.foo > s' returns 's',
       // 'di' returns 'di' and likewise.
-      firstPart = (query.match(/[\s>+]?([a-zA-Z]*)$/) || ["",query])[1];
+      firstPart = (query.match(/[\s>+~]?([a-zA-Z]*)$/) || ["",query])[1];
       for (var tag in this._searchSuggestions.tags) {
         if (tag.toLowerCase().indexOf(firstPart.toLowerCase()) == 0) {
           result.push([tag, this._searchSuggestions.tags[tag]]);
