@@ -160,6 +160,10 @@ var Popup = function Popup(aDocument, aOptions) {
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
 }
+#selectorsPopup label > b {
+  color: #000;
+  font-weight: normal;
+}
 #selectorsPopup label.pre:before {
   color: #000;
   content: attr(data-pre);
@@ -408,13 +412,16 @@ Popup.prototype = {
    */
   appendItem: function(aItem) {
     var str = this._cachedString;
-    var label = aItem.label.slice((aItem.preLabel || "").length);
+    var label = aItem.label, pre = aItem.preLabel;
     str += "<input type='radio' name='autocomplete-radios' value='" + label +
            "'><pre><label";
-    var cls = "";
-    if (aItem.preLabel) {
-      str += " data-pre='" + aItem.preLabel + "'";
+    var cls = "", fuzzy = false;
+    if (pre && label.indexOf(pre) == 0) {
+      str += " data-pre='" + pre + "'";
       cls += "pre";
+    }
+    else if (pre) {
+      fuzzy = true;
     }
     if (aItem.count && aItem.count > 1) {
       str += " data-count='" + aItem.count + "'";
@@ -423,7 +430,10 @@ Popup.prototype = {
     if (cls) {
       str += " class='" + cls + "'";
     }
-    str += " for='" + label + "'>" + label + "</label></pre>";
+    str += " for='" + label + "'>" + (fuzzy ?
+           (h = {}, label.replace(new RegExp("[" + pre + "]", "g"), function(m) {
+             return !h[m] ? (h[m] = 1, "<b>" + m + "</b>") : m;
+           })) : label.slice((pre || "").length)) + "</label></pre>";
     this._cachedString = str;
     this.values.push(aItem);
   },
