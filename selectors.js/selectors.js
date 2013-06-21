@@ -714,7 +714,7 @@ SelectorSearch.prototype = {
         case this.States.CLASS:
           if (subQuery.match(/[\.]+[^\.]*$/)[0].length > 2) {
             // Checks whether the subQuery has atleast one [a-zA-Z] after the '.'.
-            this._state = (lastChar == " " || lastChar == ">")
+            this._state = (lastChar == " " || lastChar == ">" || lastChar == "~")
             ? this.States.TAG
             : lastChar == "#"
               ? this.States.ID
@@ -725,7 +725,7 @@ SelectorSearch.prototype = {
         case this.States.ID:
           if (subQuery.match(/[#]+[^#]*$/)[0].length > 2) {
             // Checks whether the subQuery has atleast one [a-zA-Z] after the '#'.
-            this._state = (lastChar == " " || lastChar == ">")
+            this._state = (lastChar == " " || lastChar == ">" || lastChar == "~")
             ? this.States.TAG
             : lastChar == "."
               ? this.States.CLASS
@@ -786,20 +786,20 @@ SelectorSearch.prototype = {
       this._lastValidSearch = query;
       // Even though the selector matched atleast one node, there is still
       // possibility of suggestions.
-      if (query.match(/[\s>+]$/)) {
+      if (query.match(/[\s>+~]$/)) {
         // If the query has a space or '>' at the end, create a selector to match
         // the children of the selector inside the search box by adding a '*'.
         this._lastValidSearch += "*";
       }
-      else if (query.match(/[\s>+][\.#a-zA-Z][\.#>\s+]*$/)) {
+      else if (query.match(/[\s>+~][\.#a-zA-Z][\.#>\s+~]*$/)) {
         // If the query is a partial descendant selector which does not matches
         // any node, remove the last incomplete part and add a '*' to match
         // everything. For ex, convert 'foo > b' to 'foo > *' .
-        var lastPart = query.match(/[\s>+][\.#a-zA-Z][^>\s+]*$/)[0];
+        var lastPart = query.match(/[\s>+~][\.#a-zA-Z][^>\s+~]*$/)[0];
         this._lastValidSearch = query.slice(0, -1 * lastPart.length + 1) + "*";
       }
 
-      if (!query.slice(-1).match(/[\.#\s>+]/)) {
+      if (!query.slice(-1).match(/[\.#\s>+~]/)) {
         // Hide the popup if we have some matching nodes and the query is not
         // ending with [.# >] which means that the selector is not at the
         // beginning of a new class, tag or id.
@@ -813,11 +813,11 @@ SelectorSearch.prototype = {
       this.callback && this.callback(this._searchResults[0]);
     }
     else {
-      if (query.match(/[\s>+]$/)) {
+      if (query.match(/[\s>+~]$/)) {
         this._lastValidSearch = query + "*";
       }
-      else if (query.match(/[\s>+][\.#a-zA-Z][\.#>\s+]*$/)) {
-        var lastPart = query.match(/[\s+>][\.#a-zA-Z][^>\s+]*$/)[0];
+      else if (query.match(/[\s>+~][\.#a-zA-Z][\.#>\s+~]*$/)) {
+        var lastPart = query.match(/[\s+>~][\.#a-zA-Z][^>\s+~]*$/)[0];
         this._lastValidSearch = query.slice(0, -1 * lastPart.length + 1) + "*";
       }
       this.showSuggestions();
@@ -878,8 +878,8 @@ SelectorSearch.prototype = {
         // '.foo.ba' returns '.foo' , '#foo > .bar.baz' returns '#foo > .bar'
         // '.foo +bar' returns '.foo +' and likewise.
         this._lastValidSearch = (query.match(/(.*)[\.#][^\.# ]{0,}$/) ||
-                                 query.match(/(.*[\s>+])[a-zA-Z][^\.# ]{0,}$/) ||
-                                 ["",""])[1];
+                                 query.match(/(.*[\s>+~])[a-zA-Z][^\.# ]{0,}$/) ||
+                                 ["",""])[1] + "*";
         return;
 
       case 27: // ESCAPE
@@ -949,8 +949,8 @@ SelectorSearch.prototype = {
         this._lastToLastValidSearch = null;
         var query = this.searchBox.value;
         this._lastValidSearch = (query.match(/(.*)[\.#][^\.# ]{0,}$/) ||
-                                 query.match(/(.*[\s>+])[a-zA-Z][^\.# ]{0,}$/) ||
-                                 ["",""])[1];
+                                 query.match(/(.*[\s>+~])[a-zA-Z][^\.# ]{0,}$/) ||
+                                 ["",""])[1] + "*";
         this._onHTMLSearch();
         break;
 
@@ -983,18 +983,18 @@ SelectorSearch.prototype = {
     var value, len = aList.length;
     for (var i = 0; i < len; i++) {
       value = aList[i][0];
-      // for cases like 'div ' or 'div >' or 'div+'
-      if (query.match(/[\s>+]$/)) {
+      // for cases like 'div ' or 'div >' or 'div+' or 'div~'
+      if (query.match(/[\s>+~]$/)) {
         value = query + value;
       }
       // for cases like 'div #a' or 'div .a' or 'div > d' and likewise
-      else if (query.match(/[\s>+][\.#a-zA-Z][^\s>+\.#]*$/)) {
-        var lastPart = query.match(/[\s>+][\.#a-zA-Z][^>\s+\.#]*$/)[0];
+      else if (query.match(/[\s>+~][\.#a-zA-Z][^\s>+~\.#]*$/)) {
+        var lastPart = query.match(/[\s>+~][\.#a-zA-Z][^>\s+~\.#]*$/)[0];
         value = query.slice(0, -1 * lastPart.length + 1) + value;
       }
       // for cases like 'div.class' or '#foo.bar' and likewise
-      else if (query.match(/[a-zA-Z][#\.][^#\.\s+>]*$/)) {
-        var lastPart = query.match(/[a-zA-Z][#\.][^#\.\s>+]*$/)[0];
+      else if (query.match(/[a-zA-Z][#\.][^#\.\s+>~]*$/)) {
+        var lastPart = query.match(/[a-zA-Z][#\.][^#\.\s>+~]*$/)[0];
         value = query.slice(0, -1 * lastPart.length + 1) + value;
       }
       var item = {
@@ -1105,7 +1105,7 @@ SelectorSearch.prototype = {
     if (this.state() == this.States.TAG) {
       // gets the tag that is being completed. For ex. 'div.foo > s' returns 's',
       // 'di' returns 'di' and likewise.
-      firstPart = (query.match(/[\s>+]?([a-zA-Z]*)$/) || ["",query])[1];
+      firstPart = (query.match(/[\s>+~]?([a-zA-Z]*)$/) || ["",query])[1];
       for (var tag in this._searchSuggestions.tags) {
         if (tag.toLowerCase().indexOf(firstPart.toLowerCase()) == 0) {
           result.push([tag, this._searchSuggestions.tags[tag]]);
