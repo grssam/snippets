@@ -156,6 +156,8 @@ var Popup = function Popup(aDocument, aOptions) {
 #selectorsPopup label > b {
   color: #000;
   font-weight: normal;
+  font-family: inherit;
+  font-size: inherit;
 }
 #selectorsPopup label.pre:before {
   color: #000;
