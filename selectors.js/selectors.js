@@ -349,8 +349,7 @@ Popup.prototype = {
    * below, and last index if position is above.
    */
   selectFirstItem: function() {
-    if ((this.position.indexOf("above") > -1 && !this.inverted) ||
-        (this.position.indexOf("below") > -1 && this.inverted)) {
+    if (this.position.indexOf("above") > -1 ^ this.inverted) {
       this.panel.childNodes[(this.selectedIndex = this.values.length - 1)*2].checked = true;
     }
     else {
@@ -863,9 +862,9 @@ SelectorSearch.prototype = {
       case 9: // TAB
         if (this.searchPopup.isOpen()) {
           if (this._completedOnce && !this.options.noTabCycle) {
-            aEvent.shiftKey
-              ? this.searchPopup.selectPreviousItem()
-              : this.searchPopup.selectNextItem();
+            aEvent.shiftKey ^ this.searchPopup.inverted
+              ? this.searchPopup.selectNextItem()
+              : this.searchPopup.selectPreviousItem();
           }
           this.searchBox.value = this.searchPopup.getSelectedItem().label;
           this._completedOnce = true;
