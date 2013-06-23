@@ -113,9 +113,6 @@ var Popup = function Popup(aDocument, aOptions) {
         return;
       }
       this.focus();
-      if (this.onKeypress) {
-        this.onKeypress(event);
-      }
       event.preventDefault();
       event.stopPropagation();
     }.bind(this));
@@ -234,14 +231,14 @@ Popup.prototype = {
       var style = this.panel.getBoundingClientRect();
       height = style.height;
     }
-    var scrollY = scrollY || document.documentElement.scrollTop;
-    if ((this.position == "above" && y - height - scrollY < 0) ||
-        (this.position == "below" && y + height + 20 + scrollY > innerHeight)) {
-      this.panel.style.top = (y + 20  + scrollY) +"px";
+    var scroll = scrollY || document.documentElement.scrollTop;
+    if ((this.position == "above" && y - height - scroll < 0) ||
+        (this.position == "below" && y + height + 20 + scroll > innerHeight)) {
+      this.panel.style.top = (y + 20  + scroll) +"px";
       this.inverted = (this.position == "above");
     }
     else {
-      this.panel.style.top = (y - height + scrollY) +"px";
+      this.panel.style.top = (y - height + scroll) +"px";
       this.inverted = (this.position == "below");
     }
     if (this.inverted) {
@@ -844,6 +841,7 @@ SelectorSearch.prototype = {
           this.searchPopup.selectPreviousItem();
           this.searchPopup.focus();
           this.searchBox.value = this.searchPopup.getSelectedItem().label;
+          this._completedOnce = true;
         }
         else if (--this._searchIndex < 0) {
           this._searchIndex = this._searchResults.length - 1;
@@ -855,6 +853,7 @@ SelectorSearch.prototype = {
           this.searchPopup.selectNextItem();
           this.searchPopup.focus();
           this.searchBox.value = this.searchPopup.getSelectedItem().label;
+          this._completedOnce = true;
         }
         this._searchIndex = (this._searchIndex + 1) % this._searchResults.length;
         break;
@@ -867,6 +866,8 @@ SelectorSearch.prototype = {
               : this.searchPopup.selectPreviousItem();
           }
           this.searchBox.value = this.searchPopup.getSelectedItem().label;
+          this.searchBox.selectionStart = this.searchBox.selectionEnd =
+                                          this.searchBox.value.length;
           this._completedOnce = true;
         }
         break;
@@ -881,10 +882,17 @@ SelectorSearch.prototype = {
         this._lastValidSearch = (query.match(/(.*)[\.#][^\.# ]{0,}$/) ||
                                  query.match(/(.*[\s>+~])[a-zA-Z][^\.# ]{0,}$/) ||
                                  ["",""])[1] + "*";
+        if (this.searchBox.selectionStart < this.searchBox.selectionEnd &&
+            this.searchBox.selectionEnd == this.searchBox.value.length) {
+          this.searchBox.value =
+            this.searchBox.value.slice(0, this.searchBox.selectionStart);
+        }
         return;
 
       case 27: // ESCAPE
         this.searchPopup.hidePopup();
+        this.searchBox.selectionStart = this.searchBox.selectionEnd =
+                                        this.searchBox.value.length;
         this.searchBox.focus();
         return;
 
@@ -911,6 +919,8 @@ SelectorSearch.prototype = {
         aEvent.stopPropagation();
         aEvent.preventDefault();
         this.searchBox.value = this.searchPopup.getSelectedItem().label;
+        this.searchBox.selectionStart = this.searchBox.selectionEnd =
+                                        this.searchBox.value.length;
         this.searchBox.focus();
         this._onHTMLSearch();
         break;
@@ -1016,6 +1026,10 @@ SelectorSearch.prototype = {
       this.searchPopup.setItems(items);
       var style = this.searchBox.getBoundingClientRect();
       this.searchPopup.openPopup(style.left, style.top);
+      var start = this.searchBox.value.length;
+      this.searchBox.value = items[total - 1].label;
+      this.searchBox.selectionStart = start;
+      this.searchBox.selectionEnd = this.searchBox.value.length;
     }
     else {
       this.searchPopup.hidePopup();
