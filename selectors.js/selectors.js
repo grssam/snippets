@@ -51,8 +51,10 @@ var MAX_SUGGESTIONS = 15,
  * @param Object aOptions
  *        An object consiting any of the following options:
  *        - font {String} The font that is being used in the input box.
+ *        - fontSize {Number} The font size that is being used in the input box.
  *        - className {String} The class that you want the popup to have.
  *        - position {String} The preffered position of the popup (above or below).
+ *        - noFocus {Boolean} true if you want the popup to never get focus.
  *        - autoSelect {Boolean} Boolean to allow the first entry of the popup
  *                     panel to be automatically selected when the popup shows.
  *        - onSelect {String} The select event handler for the popup.
@@ -65,6 +67,7 @@ var Popup = function Popup(aDocument, aOptions) {
   aOptions = aOptions || {};
   this.autoSelect = aOptions.autoSelect || false;
   this.position = aOptions.position || "above";
+  this.noFocus = !!aOptions.noFocus;
 
   this.onSelect = aOptions.onSelect;
   this.onClick = aOptions.onClick;
@@ -132,8 +135,8 @@ var Popup = function Popup(aDocument, aOptions) {
   var styles = function() {/*!
 #selectorsPopup {
   background: white;
-  box-shadow: 0 0 5px lightblue;
-  border-radius: 4px;
+  box-shadow: 0 0 2px 0 #666;
+  border: 2px solid #404040;
   position: absolute;
   z-index: 99999;
   overflow: hidden;
@@ -144,21 +147,14 @@ var Popup = function Popup(aDocument, aOptions) {
   margin: 0 !important;
 }
 #selectorsPopup label {
-  color: grey;
+  color: #666;
   display: inline-block;
   display: flex;
   width: calc(100% - 10px);
   padding: 0px 4px;
   border: 1px solid transparent;
   font-family: %FONT%;
-}
-#selectorsPopup pre:nth-child(2) label {
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
-}
-#selectorsPopup pre:last-child label {
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
+  font-size: %FONTSIZE%px;
 }
 #selectorsPopup label > b {
   color: #000;
@@ -184,7 +180,7 @@ var Popup = function Popup(aDocument, aOptions) {
 }
 #selectorsPopup label:hover:active,
 #selectorsPopup input:checked + pre label {
-  background: lightblue;
+  background: linear-gradient(#a2c0e3, #8caad5);
 }
 #selectorsPopup input:checked:focus + pre label,
 #selectorsPopup label:hover {
@@ -196,7 +192,8 @@ var Popup = function Popup(aDocument, aOptions) {
   color: #000;
 }
 */}.toString().split("/*")[1].split("*/")[0].slice(1)
-   .replace("%FONT%", aOptions.font || "");
+   .replace("%FONT%", aOptions.font || "")
+   .replace("%FONTSIZE%", aOptions.fontSize || "14");
 
   if (css.styleSheet) {
     css.styleSheet.cssText = styles;
@@ -222,7 +219,8 @@ Popup.prototype = {
   height: null,
 
   /**
-   * Open the autocomplete popup panel.
+   * Open the autocomplete popup panel. If the space is not enough, the popup
+   * will open in the opposite direction.
    *
    * @param x {Number} The x coordinate of the top left point of the input box.
    * @param y {Number} The y coordinate of the top left point of the input box.
@@ -236,6 +234,7 @@ Popup.prototype = {
       var style = this.panel.getBoundingClientRect();
       height = style.height;
     }
+    var scrollY = scrollY || document.documentElement.scrollTop;
     if ((this.position == "above" && y - height - scrollY < 0) ||
         (this.position == "below" && y + height + 20 + scrollY > innerHeight)) {
       this.panel.style.top = (y + 20  + scrollY) +"px";
@@ -248,7 +247,7 @@ Popup.prototype = {
     if (this.inverted) {
       this.reversePopup();
     }
-    this.panel.style.left = x +"px";
+    this.panel.style.left = (x - 3) +"px";
     this._open = true;
 
     if (this.autoSelect) {
@@ -275,9 +274,7 @@ Popup.prototype = {
    * Destroy the object instance.
    */
   destroy: function() {
-    if (this.isOpen()) {
-      this.hidePopup();
-    }
+    this.hidePopup();
     this.clearItems();
 
     if (this.onSelect) {
@@ -578,7 +575,7 @@ Popup.prototype = {
    */
   focus: function() {
     this.panel.childNodes[this.selectedIndex*2].checked = true;
-    this.panel.childNodes[this.selectedIndex*2].focus();
+    !this.noFocus && this.panel.childNodes[this.selectedIndex*2].focus();
   },
 };
 
@@ -593,7 +590,9 @@ Popup.prototype = {
  *        panel will be attached and from where search input will be taken.
  * @param {Object} aOptions
  *        The options provided to the selector. Current available options are:
- *        - TODO
+ *        - noTabCycle {Boolean} false if you want to cycle through suggestions
+ *                     using <TAB> and <SHIFT> + <TAB>.
+ *        - focusPopup {Boolean} false if you don't want the popup to get focus.
  * @arguments The following combinations of the above three arguments is possible
  *            - (aContentDocument, aInputNode[, aOptions])
  *            - (aContentDocument, String[, aOptions])
@@ -632,8 +631,12 @@ function SelectorSearch() {
 
   // Options for the Popup.
   var options = {
-    font: this.searchBox.ownerDocument.defaultView.getComputedStyle(this.searchBox).fontFamily,
+    font: this.searchBox.ownerDocument.defaultView
+              .getComputedStyle(this.searchBox).fontFamily,
+    fontSize: this.searchBox.ownerDocument.defaultView
+                  .getComputedStyle(this.searchBox).fontSize.replace("px", ""),
     autoSelect: true,
+    noFocus: !this.options.focusPopup,
     onClick: this._onListBoxKeypress,
     onSelect: this._onListBoxKeypress,
     onKeypress: this._onListBoxKeypress,
@@ -740,7 +743,7 @@ SelectorSearch.prototype = {
   /**
    * Removes event listeners and cleans up references.
    */
-  destroy: function SelectorSearch_destroy() {
+  destroy: function() {
     // event listeners.
     this.searchBox.removeEventListener("keydown", this._onSearchKeypress, true);
     this.searchBox.removeEventListener("input", this._onHTMLSearch, true);
@@ -758,7 +761,7 @@ SelectorSearch.prototype = {
    * The command callback for the input box. This function is automatically
    * invoked as the user is typing if the input box type is search.
    */
-  _onHTMLSearch: function SelectorSearch__onHTMLSearch() {
+  _onHTMLSearch: function() {
     var query = this.searchBox.value;
     if (query == this._lastSearched) {
       return;
@@ -769,9 +772,7 @@ SelectorSearch.prototype = {
     if (query.length == 0) {
       this._lastValidSearch = "";
       this.searchBox.removeAttribute("filled");
-      if (this.searchPopup.isOpen()) {
-        this.searchPopup.hidePopup();
-      }
+      this.searchPopup.hidePopup();
       return;
     }
 
@@ -803,9 +804,7 @@ SelectorSearch.prototype = {
         // Hide the popup if we have some matching nodes and the query is not
         // ending with [.# >] which means that the selector is not at the
         // beginning of a new class, tag or id.
-        if (this.searchPopup.isOpen()) {
-          this.searchPopup.hidePopup();
-        }
+        this.searchPopup.hidePopup();
       }
       else {
         this.showSuggestions();
@@ -827,7 +826,7 @@ SelectorSearch.prototype = {
   /**
    * Handles keypresses inside the input box.
    */
-  _onSearchKeypress: function SelectorSearch__onSearchKeypress(aEvent) {
+  _onSearchKeypress: function(aEvent) {
     var query = this.searchBox.value;
     switch(aEvent.keyCode) {
       case 14: // ENTER
@@ -854,7 +853,7 @@ SelectorSearch.prototype = {
 
       case 40: // DOWN
         if (this.searchPopup.isOpen() && this.searchPopup.itemCount() > 0) {
-          this.searchPopup.selectedIndex = 0;
+          this.searchPopup.selectNextItem();
           this.searchPopup.focus();
           this.searchBox.value = this.searchPopup.getSelectedItem().label;
         }
@@ -862,11 +861,14 @@ SelectorSearch.prototype = {
         break;
 
       case 9: // TAB
-        if (this.searchPopup.isOpen() &&
-            this.searchPopup.getItemAtIndex(this.searchPopup.itemCount() - 1)
-                .preLabel == query) {
+        if (this.searchPopup.isOpen()) {
+          if (this._completedOnce && !this.options.noTabCycle) {
+            aEvent.shiftKey
+              ? this.searchPopup.selectPreviousItem()
+              : this.searchPopup.selectNextItem();
+          }
           this.searchBox.value = this.searchPopup.getSelectedItem().label;
-          this._onHTMLSearch();
+          this._completedOnce = true;
         }
         break;
 
@@ -901,7 +903,7 @@ SelectorSearch.prototype = {
   /**
    * Handles keypress and mouse click on the suggestions richlistbox.
    */
-  _onListBoxKeypress: function SelectorSearch__onListBoxKeypress(aEvent) {
+  _onListBoxKeypress: function(aEvent) {
     switch(aEvent.keyCode || aEvent.button) {
       case 14: // ENTER
       case 13: // RETURN
@@ -964,7 +966,7 @@ SelectorSearch.prototype = {
   /**
    * Populates the suggestions list and show the suggestion popup.
    */
-  _showPopup: function SelectorSearch__showPopup(aList, aFirstPart) {
+  _showPopup: function(aList, aFirstPart) {
     // Sort alphabetically in increaseing order.
     aList = aList.sort();
     // Sort based on count in decreasing order.
@@ -1011,6 +1013,7 @@ SelectorSearch.prototype = {
       }
     }
     if (total > 0) {
+      this._completedOnce = false;
       this.searchPopup.setItems(items);
       var style = this.searchBox.getBoundingClientRect();
       this.searchPopup.openPopup(style.left, style.top);
@@ -1024,7 +1027,7 @@ SelectorSearch.prototype = {
    * Suggests classes,ids and tags based on the user input as user types in the
    * searchbox.
    */
-  showSuggestions: function SelectorSearch_showSuggestions() {
+  showSuggestions: function() {
     var query = this.searchBox.value;
     if (this._lastValidSearch != "" &&
         this._lastToLastValidSearch != this._lastValidSearch) {
@@ -1041,13 +1044,18 @@ SelectorSearch.prototype = {
       len = nodes.length;
       for (var i = 0; i < len; i++) {
         node = nodes[i];
-        classes = node.classList || node.className.split(" ").filter(function(item) {return item.length;});
+        classes = node.classList ||
+                  node.className.split(" ").filter(function(item) {
+                    return item.length;
+                  });
         len2 = classes.length;
         this._searchSuggestions.ids[node.id] = 1;
-        this._searchSuggestions.tags[node.tagName] = (this._searchSuggestions.tags[node.tagName] || 0) + 1;
+        this._searchSuggestions.tags[node.tagName] =
+          (this._searchSuggestions.tags[node.tagName] || 0) + 1;
         for (var j = 0; j < len2; j++) {
           className = classes[j];
-          this._searchSuggestions.classes[className] = (this._searchSuggestions.classes[className] || 0) + 1;
+          this._searchSuggestions.classes[className] =
+            (this._searchSuggestions.classes[className] || 0) + 1;
         }
       }
       this._lastToLastValidSearch = this._lastValidSearch;
@@ -1069,11 +1077,15 @@ SelectorSearch.prototype = {
         len = nodes.length;
         for (i = 0; i < len; i++) {
           node = nodes[i];
-          classes = node.classList || node.className.split(" ").filter(function(item) {return item.length;});
+          classes = node.classList ||
+                    node.className.split(" ").filter(function(item) {
+                      return item.length;
+                    });
           len2 = classes.length;
           for (j = 0; j < len2; j++) {
             className = classes[j];
-            this._searchSuggestions.classes[className] = (this._searchSuggestions.classes[className] || 0) + 1;
+            this._searchSuggestions.classes[className] =
+              (this._searchSuggestions.classes[className] || 0) + 1;
           }
         }
       }
@@ -1090,7 +1102,8 @@ SelectorSearch.prototype = {
         len = nodes.length;
         for (i = 0; i < len; i++) {
           node = nodes[i];
-          this._searchSuggestions.tags[node.tagName] = (this._searchSuggestions.tags[node.tagName] || 0) + 1;
+          this._searchSuggestions.tags[node.tagName] =
+            (this._searchSuggestions.tags[node.tagName] || 0) + 1;
         }
       }
       else {
