@@ -38,9 +38,7 @@ if (!window.removeEventListener) {
 }
 
 // Maximum number of selector suggestions shown in the panel.
-var MAX_SUGGESTIONS = 15,
-// Maximum allowed width of the popup.
-    MAX_POPUP_WIDTH = 400;
+var MAX_VISIBLE_SUGGESTIONS = 15;
 
 /**
  * Autocomplete popup UI implementation.
@@ -54,6 +52,7 @@ var MAX_SUGGESTIONS = 15,
  *        - fontSize {Number} The font size that is being used in the input box.
  *        - className {String} The class that you want the popup to have.
  *        - position {String} The preffered position of the popup (above or below).
+ *        - maxVisibleRows {Number} Maximum number of visible rows.
  *        - noFocus {Boolean} true if you want the popup to never get focus.
  *        - autoSelect {Boolean} Boolean to allow the first entry of the popup
  *                     panel to be automatically selected when the popup shows.
@@ -68,6 +67,7 @@ var Popup = function Popup(aDocument, aOptions) {
   this.autoSelect = aOptions.autoSelect || false;
   this.position = aOptions.position || "above";
   this.noFocus = !!aOptions.noFocus;
+  this.maxVisibleRows = aOptions.maxVisibleRows || MAX_VISIBLE_SUGGESTIONS;
 
   this.onSelect = aOptions.onSelect;
   this.onClick = aOptions.onClick;
@@ -132,19 +132,19 @@ var Popup = function Popup(aDocument, aOptions) {
   var styles = function() {/*!
 #selectorsPopup {
   background: white;
-  box-shadow: 0 0 2px 0 #666;
+  box-shadow: 0 0 2px 0 rgba(96,96,96,0.6);
   border: 2px solid #404040;
   position: absolute;
   z-index: 99999;
   overflow: hidden;
-  display: none;
+  visibility: collapse;
   min-width: 150px;
 }
 #selectorsPopup pre {
   margin: 0 !important;
 }
 #selectorsPopup label {
-  color: #666;
+  color: #444;
   display: inline-block;
   display: flex;
   width: calc(100% - 10px);
@@ -153,16 +153,17 @@ var Popup = function Popup(aDocument, aOptions) {
   font-family: %FONT%;
   font-size: %FONTSIZE%px;
 }
-#selectorsPopup label > b {
+#selectorsPopup label > pre {
   color: #000;
-  font-weight: normal;
   font-family: inherit;
   font-size: inherit;
+  font-weight:600;
 }
 #selectorsPopup label.pre:before {
   color: #000;
   content: attr(data-pre);
   display: inline-block;
+  font-weight: 600;
 }
 #selectorsPopup label.count:after {
   color: #000;
@@ -225,7 +226,6 @@ Popup.prototype = {
    * @param y {Number} The y coordinate of the top left point of the input box.
    */
   openPopup: function(x, y) {
-    this.panel.style.display = "block";
     // If position is above, the (x, y) point will be the bottom left point of
     // the popup, unless there is not enough space to show the popup above.
     var height = 0;
@@ -235,7 +235,7 @@ Popup.prototype = {
     }
     var scroll = scrollY || document.documentElement.scrollTop;
     if ((this.position == "above" && y - height - scroll < 0) ||
-        (this.position == "below" && y + height + 20 + scroll > innerHeight)) {
+        (this.position == "below" && y + height + 20 + scroll < innerHeight)) {
       this.panel.style.top = (y + 20  + scroll) +"px";
       this.inverted = (this.position == "above");
     }
@@ -247,6 +247,7 @@ Popup.prototype = {
       this.reversePopup();
     }
     this.panel.style.left = (x - 3) +"px";
+    this.panel.style.visibility = "visible";
     this._open = true;
 
     if (this.autoSelect) {
@@ -259,7 +260,7 @@ Popup.prototype = {
    */
   hidePopup: function() {
     this._open = false;
-    this.panel.style.display = "none";
+    this.panel.style.visibility = "collapse";
   },
 
   /**
@@ -333,6 +334,7 @@ Popup.prototype = {
    */
   setItems: function(aItems) {
     this.clearItems();
+    aItems.splice(this.maxVisibleRows);
     aItems.forEach(this.appendItem, this);
 
     this._flushItems();
@@ -396,7 +398,6 @@ Popup.prototype = {
    * Clears all the items from the autocomplete list.
    */
   clearItems: function() {
-    this.panel.innerHTML = "";
     this.selectedIndex = -1;
     this._cachedString = "";
     this.values = [];
@@ -433,7 +434,8 @@ Popup.prototype = {
    */
   appendItem: function(aItem) {
     var str = this._cachedString;
-    var label = aItem.label, pre = aItem.preLabel;
+    var label = aItem.label || aItem.display,
+        pre = aItem.preLabel || aItem.prefix;
     str += "<input type='radio' name='autocomplete-radios' value='" + label +
            "'><pre><label";
     var cls = "", fuzzy = false;
@@ -453,7 +455,7 @@ Popup.prototype = {
     }
     str += " for='" + label + "'>" + (fuzzy ?
            (h = {}, label.replace(new RegExp("[" + pre + "]", "g"), function(m) {
-             return !h[m] ? (h[m] = 1, "<b>" + m + "</b>") : m;
+             return !h[m] ? (h[m] = 1, "<pre>" + m + "</pre>") : m;
            })) : label.slice((pre || "").length)) + "</label></pre>";
     this._cachedString = str;
     this.values.push(aItem);
