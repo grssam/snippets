@@ -1,0 +1,51 @@
+/**
+ * This work is licensed under the Creative Commons
+ * Attribution 3.0 Unported License. To view a copy
+ * of this license, visit http://creativecommons.org/licenses/by/3.0/.
+ *
+ * Author: Girish Sharma <scrapmachines@gmail.com>
+ */
+
+/* Loader with three blocks */
+.loader-fb, .loader-fb:before, .loader-fb:after {
+  position: relative;
+  display: inline-block;
+  width: 20px;
+  height: 50px;
+  background-color: rgba(215,230,240,0.9);
+  border: 1px solid rgb(215,230,240);
+  z-index: 100000;
+  content: ' ';
+  margin-left: -5px;
+  margin-right: -9px;
+}
+.loader-fb:before {
+  top: -11px;
+  left: -100%;
+  animation: loading-fb .8s cubic-bezier(.4,.5,.6,1) infinite;
+}
+.loader-fb {
+  animation: loading-fb-main .8s cubic-bezier(.4,.5,.6,1) .2s infinite;
+}
+.loader-fb:after {
+  top: -11px;
+  right: -100%;
+  margin-top: 50%;
+  animation: loading-fb .8s cubic-bezier(.4,.5,.6,1) .4s infinite;
+}
+@keyframes loading-fb {
+  from {
+    transform: scaleY(1.4);
+    background-color: rgba(55,114,171,0.9);
+    border: 1px solid rgb(55,114,171);
+  }
+}
+@keyframes loading-fb-main {
+  from {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-top: -10px;
+    background-color: rgba(55,114,171,0.9);
+    border: 1px solid rgb(55,114,171);
+  }
+}
