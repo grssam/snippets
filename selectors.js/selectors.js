@@ -1021,7 +1021,7 @@ SelectorSearch.prototype = {
         item.label = value.toLowerCase();
       }
       items.unshift(item);
-      if (++total > MAX_SUGGESTIONS - 1) {
+      if (++total > MAX_VISIBLE_SUGGESTIONS - 1) {
         break;
       }
     }
